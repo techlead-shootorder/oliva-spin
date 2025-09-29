@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Wheel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 640px) {
+            .wheel-container {
+                width: 340px;
+                height: 340px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-container {
+                width: 400px;
+                height: 400px;
+            }
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.23, 1, 0.320, 1);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.4);
+        }
+        
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .wheel-segment .segment-text {
+            position: absolute;
+            top: 40%;
+            left: 47%;
+            transform-origin: center;
+            white-space: nowrap;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            text-shadow: inherit;
+        }
+        
+        @media (min-width: 640px) {
+            .wheel-segment {
+                font-size: 12px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-segment {
+                font-size: 14px;
+            }
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-top: 32px solid #667eea;
+            z-index: 20;
+            filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.4));
+        }
+        
+        .wheel-pointer::after {
+            content: '';
+            position: absolute;
+            top: -28px;
+            left: -12px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 24px solid #ffffff;
+        }
+        
+        .spin-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 6px solid rgba(255, 255, 255, 0.9);
+            z-index: 15;
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4), 0 0 0 2px rgba(102, 126, 234, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            line-height: 1.1;
+        }
+        
+        @media (min-width: 640px) {
+            .spin-button {
+                width: 90px;
+                height: 90px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .spin-button {
+                width: 100px;
+                height: 100px;
+                font-size: 14px;
+            }
+        }
+        
+        .spin-button:hover:not(:disabled) {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+        
+        .spin-button:active:not(:disabled) {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        .spin-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.02); }
+        }
+        
+        .floating-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 24px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
+        }
+        
+        .option-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .add-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+        
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        .option-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 20px;
+            padding: 6px 12px;
+            margin: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
+         
+        <!-- Phone Number Login Modal -->
+        <div id="phoneLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="glass-card p-6 w-full max-w-sm">
+                <div class="text-center mb-6">
+                    <div class="text-4xl mb-3">📱</div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Enter Your Phone Number</h2>
+                    <p class="text-gray-600 text-sm">Please enter your phone number to continue</p>
+                </div>
+                
+                <form id="phoneLoginForm" class="space-y-4">
+                    <div>
+                        <input 
+                            type="tel" 
+                            id="phoneInput" 
+                            placeholder="Enter your phone number"
+                            class="input-field"
+                            pattern="[0-9]{10}"
+                            maxlength="10"
+                            required
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Enter 10-digit phone number</p>
+                    </div>
+                    
+                    <button type="submit" class="add-button w-full">
+                        Continue to Spin Wheel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-2">
+            <img src="https://oasisindia.in/_next/image/?url=https%3A%2F%2Fimages.oasisindia.in%2Fwebsite%2Flogo%2Flogo2.png&w=640&q=75" 
+                 alt="Oasis India Logo" 
+                 class="mx-auto mb-4 h-12 sm:h-16 md:h-20 w-auto">
+            <h1 id="wheelTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                Oasis Spin Wheel
+            </h1>
+            <p id="wheelDescription" class="text-gray-600 text-sm sm:text-base">
+                Spin once and win amazing discounts on IVF treatments!
+            </p>
+        </div>
+        
+        <!-- Wheel Container -->
+        <div class="glass-card p-4 sm:p-6 md:p-8">
+            <div class="wheel-container floating-animation">
+                <div class="wheel-pointer"></div>
+                <div id="wheel" class="wheel">
+                    <!-- Wheel segments will be generated by JavaScript -->
+                </div>
+                <button 
+                    id="spinBtn" 
+                    class="spin-button"
+                    onclick="spinWheel()"
+                >
+                    <span id="spinText">🎲<br>SPIN</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Result -->
+        <div id="result" class="result-card hidden w-full max-w-sm transform transition-all duration-500 scale-95 opacity-0">
+            <div class="flex items-center justify-center mb-3">
+                <div class="text-3xl">🎉</div>
+            </div>
+            <h3 class="text-xl font-bold mb-3 relative z-10">🎉 Congratulations!</h3>
+            <p class="text-2xl font-bold mb-4 relative z-10" id="resultText"></p>
+            <div class="mt-4 p-5 bg-white/25 rounded-xl border border-white/30 backdrop-blur-sm relative z-10">
+                <p class="text-sm font-semibold mb-2 text-white/90">🎫 Your Coupon Code:</p>
+                <p class="text-xl font-mono font-bold tracking-wider text-white" id="couponCode"></p>
+            </div>
+            <div class="mt-6 w-16 h-1 bg-white/40 rounded-full mx-auto relative z-10"></div>
+        </div>
+        
+        <!-- Spin Status -->
+        <div id="spinStatus" class="w-full max-w-sm hidden">
+            <div class="option-card">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">🎯</span>
+                    Your Spin Result
+                </h3>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 mb-2">You have already spun and won:</p>
+                    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border border-indigo-200">
+                        <p class="text-lg font-bold text-indigo-800" id="previousResult"></p>
+                        <div class="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200 shadow-sm">
+                            <p class="text-sm text-emerald-700 font-semibold mb-2">🎫 Your Coupon Code:</p>
+                            <p class="text-lg font-mono font-bold text-emerald-800 tracking-wider" id="previousCouponCode"></p>
+                        </div>
+                        <p class="text-sm text-indigo-600 mt-3 font-medium">🎉 Thank you for participating!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Segment Management -->
+     
+        
+        <!-- Footer -->
+        <div class="text-center text-xs text-gray-500 mt-8">
+            <p>Mobile-optimized spinning wheel • Tap to spin</p>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // Get recorded ID from URL or session storage
+        let recordedId = getUrlParameter('recordedId') || sessionStorage.getItem('phoneNumber');
+        
+        // Wheel options will be loaded from API
+        let wheelOptions = [];
+        let canSpin = true;
+        let isSpinning = false;
+        let currentWeek = 1;
+        
+        // Generate vibrant colors
+        function getRandomColor() {
+            const colors = [
+                "#ef4444", "#f97316", "#eab308", "#22c55e", 
+                "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4",
+                "#84cc16", "#f59e0b", "#10b981", "#6366f1",
+                "#f43f5e", "#8b5cf6", "#0ea5e9", "#ef4444"
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Create wheel segments
+        function createWheel() {
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+            
+            const segmentAngle = 360 / wheelOptions.length;
+            
+            wheelOptions.forEach((option, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'wheel-segment';
+                segment.style.backgroundColor = option.color;
+                segment.style.transform = `rotate(${index * segmentAngle}deg)`;
+                
+                // Create text element with proper positioning
+                const textSpan = document.createElement('span');
+                textSpan.className = 'segment-text';
+                textSpan.textContent = option.text;
+                // Apply custom rotation for each segment text
+                const textRotation = option.textRotation || 60;
+                textSpan.style.transform = `rotate(${textRotation}deg)`;
+                
+                segment.appendChild(textSpan);
+                wheel.appendChild(segment);
+            });
+        }
+        
+        // Load wheel data from API
+        async function loadWheelData() {
+            try {
+                const response = await fetch(`api/get-wheel-data.php?recordedId=${recordedId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    wheelOptions = data.wheelData;
+                    canSpin = data.canSpin;
+                    currentWeek = data.currentWeek;
+                    
+                    // Update UI elements
+                    document.getElementById('wheelTitle').textContent = data.settings.wheel_title || '🎯 Oasis Spin Wheel';
+                    document.getElementById('wheelDescription').textContent = data.settings.wheel_description || 'Spin once and win amazing discounts on IVF treatments!';
+                    
+                    // Update current week if element exists
+                    const currentWeekElement = document.getElementById('currentWeek');
+                    if (currentWeekElement) {
+                        currentWeekElement.textContent = currentWeek;
+                    }
+                    
+                    // Show previous result if user already spun
+                    if (!canSpin && data.previousResult) {
+                        document.getElementById('previousResult').textContent = data.previousResult;
+                        
+                        // Show coupon code if available
+                        if (data.previousCouponCode) {
+                            document.getElementById('previousCouponCode').textContent = data.previousCouponCode;
+                        } else {
+                            document.getElementById('previousCouponCode').textContent = 'Code not available';
+                        }
+                        
+                        document.getElementById('spinStatus').classList.remove('hidden');
+                        document.getElementById('spinBtn').disabled = true;
+                        document.getElementById('spinText').innerHTML = '✓<br>USED';
+                    }
+                    
+                    createWheel();
+                } else {
+                    console.error('Failed to load wheel data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading wheel data:', error);
+            }
+        }
+        
+        // Spin the wheel
+        async function spinWheel() {
+            if (isSpinning || !canSpin) return;
+            
+            if (!recordedId) {
+                showPhoneLoginModal();
+                return;
+            }
+            
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            const spinText = document.getElementById('spinText');
+            const result = document.getElementById('result');
+            const wheel = document.getElementById('wheel');
+            
+            // Hide previous result with animation
+            result.classList.add('hidden');
+            result.classList.remove('scale-100', 'opacity-100');
+            result.classList.add('scale-95', 'opacity-0');
+            
+            // Update button state
+            spinBtn.disabled = true;
+            spinText.innerHTML = '🌀<br>SPINNING';
+            
+            try {
+                // Call API to get spin result
+                const response = await fetch('api/spin.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        recordedId: recordedId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const winner = data.result;
+                    
+                    // Calculate spin animation
+                    const minSpins = 5;
+                    const maxSpins = 8;
+                    const spins = Math.random() * (maxSpins - minSpins) + minSpins;
+                    const finalRotation = spins * 360;
+                    
+                    // Find winning segment index
+                    const winningIndex = wheelOptions.findIndex(option => option.text === winner.text);
+                    const segmentAngle = 360 / wheelOptions.length;
+                    const targetAngle = (winningIndex * segmentAngle) + (segmentAngle / 2);
+                    const totalRotation = finalRotation + (360 - targetAngle);
+                    
+                    // Apply rotation
+                    wheel.style.transform = `rotate(${totalRotation}deg)`;
+                    
+                    // Show result after animation
+                    setTimeout(() => {
+                        // Update result display
+                        document.getElementById('resultText').textContent = winner.text;
+                        document.getElementById('resultText').style.color = winner.color;
+                        document.getElementById('couponCode').textContent = winner.code;
+                        
+                        // Show result with animation
+                        result.classList.remove('hidden');
+                        setTimeout(() => {
+                            result.classList.remove('scale-95', 'opacity-0');
+                            result.classList.add('scale-100', 'opacity-100');
+                        }, 50);
+                        
+                        // Disable further spins
+                        canSpin = false;
+                        spinText.innerHTML = '✓<br>USED';
+                        
+                        // Add celebration effect
+                        createConfetti();
+                        
+                        // Show spin status
+                        document.getElementById('previousResult').textContent = winner.text;
+                        document.getElementById('previousCouponCode').textContent = winner.code;
+                        document.getElementById('spinStatus').classList.remove('hidden');
+                        
+                        isSpinning = false;
+                    }, 4000);
+                } else {
+                    throw new Error(data.error || 'Spin failed');
+                }
+            } catch (error) {
+                console.error('Spin error:', error);
+                alert(error.message || 'An error occurred while spinning. Please try again.');
+                
+                // Re-enable button on error
+                spinBtn.disabled = false;
+                spinText.innerHTML = '🎲<br>SPIN';
+                isSpinning = false;
+            }
+        }
+        
+        // Simple confetti effect
+        function createConfetti() {
+            const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+            
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '8px';
+                confetti.style.height = '8px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = '50%';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.animation = `fall ${Math.random() * 2 + 1}s linear forwards`;
+                confetti.style.zIndex = '1000';
+                
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+        
+        // Add fall animation for confetti
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Update button state on load
+        updateSpinButton();
+        
+        // Prevent zoom on double tap for mobile
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Add visual feedback for disabled state
+        function updateSpinButton() {
+            const spinBtn = document.getElementById('spinBtn');
+            const spinText = document.getElementById('spinText');
+            
+            if (!canSpin) {
+                spinBtn.disabled = true;
+                spinText.innerHTML = '✓<br>USED';
+                spinBtn.style.opacity = '0.5';
+            }
+        }
+        
+        // Segment management functions
+        function generateSegmentInputs() {
+            const container = document.getElementById('segmentInputs');
+            container.innerHTML = '';
+            
+            wheelOptions.forEach((option, index) => {
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'bg-gray-50 p-3 rounded-lg space-y-2';
+                inputGroup.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Segment ${index + 1}</span>
+                        <button 
+                            onclick="removeSegment(${index})" 
+                            class="text-red-500 hover:text-red-700 px-2 py-1 rounded"
+                            title="Remove segment"
+                        >
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        <input 
+                            type="text" 
+                            value="${option.text}" 
+                            placeholder="Segment text"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            data-index="${index}"
+                            data-field="text"
+                        >
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-600 mb-1">Color</label>
+                                <input 
+                                    type="color" 
+                                    value="${option.color}" 
+                                    class="w-full h-8 border border-gray-300 rounded cursor-pointer"
+                                    data-index="${index}"
+                                    data-field="color"
+                                >
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs text-gray-600 mb-1">Text Rotation (deg)</label>
+                                <input 
+                                    type="number" 
+                                    value="${option.textRotation || 60}" 
+                                    min="0" 
+                                    max="360"
+                                    placeholder="60"
+                                    class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    data-index="${index}"
+                                    data-field="textRotation"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(inputGroup);
+            });
+        }
+        
+        function addSegment() {
+            const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4"];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            wheelOptions.push({
+                text: `New Segment ${wheelOptions.length + 1}`,
+                color: randomColor,
+                value: 1000,
+                code: `CODE${wheelOptions.length + 1}`,
+                probability: 10,
+                textRotation: 60
+            });
+            
+            generateSegmentInputs();
+        }
+        
+        function removeSegment(index) {
+            if (wheelOptions.length > 2) {
+                wheelOptions.splice(index, 1);
+                generateSegmentInputs();
+            } else {
+                alert('Minimum 2 segments required');
+            }
+        }
+        
+        function updateWheel() {
+            // Update wheelOptions from inputs
+            const textInputs = document.querySelectorAll('input[data-field="text"]');
+            const colorInputs = document.querySelectorAll('input[data-field="color"]');
+            const rotationInputs = document.querySelectorAll('input[data-field="textRotation"]');
+            
+            textInputs.forEach((input, index) => {
+                if (wheelOptions[index]) {
+                    wheelOptions[index].text = input.value || `Segment ${index + 1}`;
+                }
+            });
+            
+            colorInputs.forEach((input, index) => {
+                if (wheelOptions[index]) {
+                    wheelOptions[index].color = input.value;
+                }
+            });
+            
+            rotationInputs.forEach((input, index) => {
+                if (wheelOptions[index]) {
+                    wheelOptions[index].textRotation = parseInt(input.value) || 60;
+                }
+            });
+            
+            // Recreate the wheel
+            createWheel();
+            alert('Wheel updated successfully!');
+        }
+        
+        // New functions for enhanced features
+        function resetToDefaults() {
+            if (confirm('Reset all segments to default settings?')) {
+                // Reset to original discount tiers
+                wheelOptions = [
+                    { text: "10K Discount", color: "#667eea", textRotation: 60 },
+                    { text: "15K Discount", color: "#f97316", textRotation: 60 },
+                    { text: "20K Discount", color: "#eab308", textRotation: 60 },
+                    { text: "50K Discount", color: "#22c55e", textRotation: 60 },
+                    { text: "1 Lakh Discount", color: "#3b82f6", textRotation: 60 },
+                    { text: "Free IVF", color: "#8b5cf6", textRotation: 60 }
+                ];
+                generateSegmentInputs();
+                createWheel();
+            }
+        }
+        
+        function randomizeColors() {
+            const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f59e0b"];
+            wheelOptions.forEach(option => {
+                option.color = colors[Math.floor(Math.random() * colors.length)];
+            });
+            generateSegmentInputs();
+            createWheel();
+        }
+        
+        function applyGlobalRotation() {
+            const globalRotation = document.getElementById('globalRotation').value;
+            const rotation = parseInt(globalRotation) || 60;
+            
+            wheelOptions.forEach(option => {
+                option.textRotation = rotation;
+            });
+            
+            generateSegmentInputs();
+            createWheel();
+            alert(`Applied ${rotation}° rotation to all segments!`);
+        }
+        
+        function applyGlobalTextSize() {
+            const textSize = document.getElementById('globalTextSize').value;
+            
+            // Update CSS for segment text size
+            const style = document.createElement('style');
+            style.textContent = `
+                .wheel-segment {
+                    font-size: ${textSize} !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            createWheel();
+            alert(`Applied ${textSize} text size to all segments!`);
+        }
+        
+        function applyPreset(presetName) {
+            switch(presetName) {
+                case 'rainbow':
+                    wheelOptions.forEach((option, index) => {
+                        const rainbowColors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
+                        option.color = rainbowColors[index % rainbowColors.length];
+                        option.textRotation = 45;
+                    });
+                    break;
+                    
+                case 'business':
+                    wheelOptions.forEach(option => {
+                        const businessColors = ["#1f2937", "#374151", "#4b5563", "#6b7280", "#374151", "#1f2937"];
+                        option.color = businessColors[Math.floor(Math.random() * businessColors.length)];
+                        option.textRotation = 90;
+                    });
+                    break;
+                    
+                case 'medical':
+                    wheelOptions.forEach(option => {
+                        const medicalColors = ["#059669", "#10b981", "#34d399", "#0891b2", "#0284c7", "#3b82f6"];
+                        option.color = medicalColors[Math.floor(Math.random() * medicalColors.length)];
+                        option.textRotation = 60;
+                    });
+                    break;
+                    
+                case 'party':
+                    wheelOptions.forEach(option => {
+                        const partyColors = ["#ec4899", "#f59e0b", "#eab308", "#84cc16", "#06b6d4", "#8b5cf6"];
+                        option.color = partyColors[Math.floor(Math.random() * partyColors.length)];
+                        option.textRotation = 30;
+                    });
+                    break;
+            }
+            
+            generateSegmentInputs();
+            createWheel();
+            alert(`Applied ${presetName} preset!`);
+        }
+        
+        // Phone number login functionality
+        function showPhoneLoginModal() {
+            document.getElementById('phoneLoginModal').classList.remove('hidden');
+        }
+        
+        function hidePhoneLoginModal() {
+            document.getElementById('phoneLoginModal').classList.add('hidden');
+        }
+        
+        function validatePhoneNumber(phone) {
+            // Remove any non-digit characters
+            const cleanPhone = phone.replace(/\D/g, '');
+            // Check if it's exactly 10 digits
+            return cleanPhone.length === 10 && /^\d{10}$/.test(cleanPhone);
+        }
+        
+        // Handle phone login form submission
+        document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phoneInput = document.getElementById('phoneInput');
+            const phoneNumber = phoneInput.value.trim();
+            
+            if (!validatePhoneNumber(phoneNumber)) {
+                alert('Please enter a valid 10-digit phone number');
+                phoneInput.focus();
+                return;
+            }
+            
+            // Clean and store phone number
+            const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
+            recordedId = cleanPhoneNumber;
+            sessionStorage.setItem('phoneNumber', cleanPhoneNumber);
+            
+            console.log('Phone number set as recordedId:', cleanPhoneNumber);
+            
+            // Hide modal and load wheel data
+            hidePhoneLoginModal();
+            loadWheelData();
+        });
+        
+        // Check if user needs to enter phone number
+        function checkPhoneLogin() {
+            if (!recordedId) {
+                showPhoneLoginModal();
+                return false;
+            }
+            return true;
+        }
+        
+        // Initialize application
+        function initializeApp() {
+            if (checkPhoneLogin()) {
+                loadWheelData();
+            }
+            
+            // Generate segment inputs after wheel data is loaded
+            setTimeout(() => {
+                generateSegmentInputs();
+            }, 1000);
+            
+            // Display recordedId if present
+            if (recordedId) {
+                console.log('Recorded ID:', recordedId);
+            }
+        }
+        
+        // Start the application
+        initializeApp();
+    </script>
+</body>
+</html>
