@@ -305,6 +305,36 @@
             </div>
         </div>
 
+        <!-- OTP Verification Modal -->
+        <div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="glass-card p-6 w-full max-w-sm">
+                <div class="text-center mb-6">
+                    <div class="text-4xl mb-3">🔐</div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Verify OTP</h2>
+                    <p class="text-gray-600 text-sm">An OTP has been sent to your number. Please enter it below.</p>
+                </div>
+                
+                <form id="otpVerifyForm" class="space-y-4">
+                    <div>
+                        <input 
+                            type="text" 
+                            id="otpInput" 
+                            placeholder="Enter OTP"
+                            class="input-field"
+                            pattern="[0-9]{4}"
+                            maxlength="4"
+                            required
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Enter the 4-digit OTP.</p>
+                    </div>
+                    
+                    <button type="submit" class="add-button w-full">
+                        Verify & Spin
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="text-center mb-2">
             <img src="https://oasisindia.in/_next/image/?url=https%3A%2F%2Fimages.oasisindia.in%2Fwebsite%2Flogo%2Flogo2.png&w=640&q=75" 
@@ -1136,6 +1166,14 @@
         function hidePhoneLoginModal() {
             document.getElementById('phoneLoginModal').classList.add('hidden');
         }
+
+        function showOtpModal() {
+            document.getElementById('otpModal').classList.remove('hidden');
+        }
+
+        function hideOtpModal() {
+            document.getElementById('otpModal').classList.add('hidden');
+        }
         
         // Privacy Policy modal functionality
         function showPrivacyModal() {
@@ -1174,32 +1212,120 @@
             // Check if it's exactly 10 digits
             return cleanPhone.length === 10 && /^\d{10}$/.test(cleanPhone);
         }
+
+        async function sendOtp(phoneNumber) {
+            const button = document.querySelector('#phoneLoginForm button');
+            button.disabled = true;
+            button.textContent = 'Sending OTP...';
+
+            const formData = new FormData();
+            formData.append('action', 'ajax_contact_form_mobile_otp');
+            formData.append('mobile_number', phoneNumber);
+
+            try {
+                const response = await fetch('api/otp.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const resultText = await response.text();
+                const result = JSON.parse(resultText);
+
+                if (result.type === 'success') {
+                    // Store phone number temporarily
+                    sessionStorage.setItem('tempPhoneNumber', phoneNumber);
+                    hidePhoneLoginModal();
+                    showOtpModal();
+                } else {
+                    alert('Failed to send OTP: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+                alert('An error occurred while sending the OTP. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Continue to Spin Wheel';
+            }
+        }
+
+        async function verifyOtp(phoneNumber, otp) {
+            const button = document.querySelector('#otpVerifyForm button');
+            button.disabled = true;
+            button.textContent = 'Verifying...';
+
+            const formData = new FormData();
+            formData.append('action', 'ajax_contact_form_mobile_verified_otp');
+            formData.append('mobile_number', phoneNumber);
+            formData.append('mobile_otp', otp);
+
+            try {
+                const response = await fetch('api/otp.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const resultText = await response.text();
+                const result = JSON.parse(resultText);
+
+                if (result.type === 'success') {
+                    // OTP Verified
+                    const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
+                    recordedId = cleanPhoneNumber;
+                    sessionStorage.setItem('phoneNumber', cleanPhoneNumber);
+                    sessionStorage.removeItem('tempPhoneNumber');
+                    
+                    console.log('Phone number verified and set as recordedId:', cleanPhoneNumber);
+                    
+                    hideOtpModal();
+                    loadWheelData();
+                } else {
+                    alert('OTP Verification Failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                alert('An error occurred during OTP verification. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Verify & Spin';
+            }
+        }
         
         // Handle phone login form submission
         document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const phoneInput = document.getElementById('phoneInput');
             const phoneNumber = phoneInput.value.trim();
-            
+
             if (!validatePhoneNumber(phoneNumber)) {
                 alert('Please enter a valid 10-digit phone number');
                 phoneInput.focus();
                 return;
             }
             
-            // Clean and store phone number
-            const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
-            recordedId = cleanPhoneNumber;
-            sessionStorage.setItem('phoneNumber', cleanPhoneNumber);
-            
-            console.log('Phone number set as recordedId:', cleanPhoneNumber);
-            
-            // Hide modal and load wheel data
-            hidePhoneLoginModal();
-            
-            // Load wheel data now that we have a recorded ID
-            loadWheelData();
+            sendOtp(phoneNumber);
+        });
+
+        // Handle OTP verification form submission
+        document.getElementById('otpVerifyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const otpInput = document.getElementById('otpInput');
+            const otp = otpInput.value.trim();
+            const phoneNumber = sessionStorage.getItem('tempPhoneNumber');
+
+            if (!/^\d{4}$/.test(otp)) {
+                alert('Please enter a valid 4-digit OTP.');
+                otpInput.focus();
+                return;
+            }
+
+            if (!phoneNumber) {
+                alert('Phone number not found. Please start over.');
+                hideOtpModal();
+                showPhoneLoginModal();
+                return;
+            }
+
+            verifyOtp(phoneNumber, otp);
         });
         
         // Check if user needs to enter phone number
