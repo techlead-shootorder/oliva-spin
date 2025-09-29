@@ -8,8 +8,8 @@
     <style>
         .wheel-container {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 320px;
+            height: 320px;
             margin: 0 auto;
         }
         
@@ -34,8 +34,8 @@
             position: relative;
             overflow: hidden;
             transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.4);
+            /* box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1); */
+            /* border: 2px solid rgba(102, 126, 234, 0.4); */
         }
         
         .wheel-segment {
@@ -272,7 +272,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+<!-- <body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" > -->
+<body class="min-h-screen object-cover" style="background: url('images/BG.png')" >
+
     <div class="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
          
         <!-- Phone Number Login Modal -->
@@ -337,20 +339,24 @@
 
         <!-- Header -->
         <div class="text-center mb-2">
-            <img src="https://oasisindia.in/_next/image/?url=https%3A%2F%2Fimages.oasisindia.in%2Fwebsite%2Flogo%2Flogo2.png&w=640&q=75" 
+            <img src="images/oliva-logo.png" 
+                 alt="Oasis India Logo" 
+                 class="mx-auto h-12 sm:h-16 md:h-20 w-auto mb-10">
+
+                 <img src="images/Text.png" 
                  alt="Oasis India Logo" 
                  class="mx-auto mb-4 h-12 sm:h-16 md:h-20 w-auto">
-            <h1 id="wheelTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+            <!-- <h1 id="wheelTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Oasis Spin Wheel's
             </h1>
          
             <p id="wheelDescription" class="text-gray-600 text-sm sm:text-base">
                 Spin once and win amazing discounts on IVF treatments!
-            </p>
+            </p> -->
         </div>
         
         <!-- Wheel Container -->
-        <div class="glass-card p-4 sm:p-6 md:p-8">
+        <div class="">
             <div class="wheel-container floating-animation">
                 <div class="wheel-pointer"></div>
                 <div id="wheel" class="wheel">
@@ -714,12 +720,12 @@
         function loadFallbackData() {
             console.log('🔄 Loading fallback data for testing...');
             wheelOptions = [
-                { text: "10K Discount", color: "#ef4444", probability: 20, code: "SAVE10K" },
-                { text: "15K Discount", color: "#f97316", probability: 18, code: "SAVE15K" },
-                { text: "20K Discount", color: "#eab308", probability: 16, code: "SAVE20K" },
-                { text: "50K Discount", color: "#22c55e", probability: 14, code: "SAVE50K" },
-                { text: "1 Lakh Discount", color: "#3b82f6", probability: 12, code: "SAVE100K" },
-                { text: "Free IVF", color: "#8b5cf6", probability: 10, code: "FREEIVF" }
+                { text: "Vdiscover @499", color: "#038b91", probability: 20, code: "SAVE10K" },
+                { text: "Free Vdiscover", color: "#00b3b5", probability: 18, code: "SAVE15K" },
+                { text: "Extra 10% off", color: "#038b91", probability: 16, code: "SAVE20K" },
+                { text: "Extra 15% off", color: "#00b3b5", probability: 14, code: "SAVE50K" },
+                { text: "Extra 20% off", color: "#038b91", probability: 12, code: "SAVE100K" },
+                { text: "Better luck next time", color: "#00b3b5", probability: 10, code: "FREEIVF" }
             ];
             canSpin = true; // Allow spinning with fallback data
             
