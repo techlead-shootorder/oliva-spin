@@ -1,9 +1,9 @@
 <?php
 // Database configuration
 $host = 'localhost';
-$dbname = 'u955765309_spin';
-$username = 'u955765309_wheel';
-$password = 'Shoot@Order#123$';
+$dbname = 'u955765309_olivaspin';
+$username = 'u955765309_faraz';
+$password = '2m!OAz~&bUQ';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
