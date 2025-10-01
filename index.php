@@ -8,34 +8,26 @@
     <style>
         .wheel-container {
             position: relative;
-            width: 320px;
-            height: 320px;
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
             margin: 0 auto;
-        }
-        
-        @media (min-width: 640px) {
-            .wheel-container {
-                width: 340px;
-                height: 340px;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .wheel-container {
-                width: 400px;
-                height: 400px;
-            }
+            will-change: transform;
         }
         
         .wheel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            position: relative;
             overflow: hidden;
             transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-            /* box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1); */
-            /* border: 2px solid rgba(102, 126, 234, 0.4); */
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.4);
+            will-change: transform;
         }
         
         .wheel-segment {
@@ -132,12 +124,31 @@
             text-align: center;
             line-height: 1.1;
         }
+
+        .spin-handle {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background-image: url('images/Spin-Handle.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 16;
+            pointer-events: none;
+        }
         
         @media (min-width: 640px) {
             .spin-button {
                 width: 90px;
                 height: 90px;
                 font-size: 13px;
+            }
+            .spin-handle {
+                width: 130px;
+                height: 130px;
             }
         }
         
@@ -146,6 +157,10 @@
                 width: 100px;
                 height: 100px;
                 font-size: 14px;
+            }
+            .spin-handle {
+                width: 140px;
+                height: 140px;
             }
         }
         
@@ -179,7 +194,7 @@
         }
         
         .result-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #01a4a6;
             border-radius: 20px;
             padding: 24px;
             color: white;
@@ -269,6 +284,7 @@
             border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 28px;
             box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            will-change: transform;
         }
     </style>
 </head>
@@ -299,6 +315,8 @@
                         >
                         <p class="text-xs text-gray-500 mt-1">Enter 10-digit phone number</p>
                     </div>
+
+                    <div id="phoneError" class="text-red-500 text-sm my-2 text-center"></div>
                     
                     <button type="submit" class="add-button w-full">
                         Continue to Spin Wheel
@@ -337,6 +355,29 @@
             </div>
         </div>
 
+        <!-- SMS Error Modal -->
+        <div id="smsErrorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+            <div class="glass-card p-6 w-full max-w-sm">
+                <div class="text-center mb-6">
+                    <div class="text-4xl mb-3">📱❌</div>
+                    <h2 class="text-xl font-bold text-red-600 mb-2">SMS Not Sent</h2>
+                    <p class="text-gray-600 text-sm" id="smsErrorMessage">There was an error sending the SMS with your coupon code.</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-sm text-yellow-800">
+                            <strong>Don't worry!</strong> Your coupon code is still valid. Please take a screenshot of this page or note down your coupon code.
+                        </p>
+                    </div>
+                    
+                    <button onclick="hideSmsErrorModal()" class="add-button w-full">
+                        Got it, Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="text-center mb-2">
             <img src="images/oliva-logo.png" 
@@ -345,7 +386,7 @@
 
                  <img src="images/Text.png" 
                  alt="Oasis India Logo" 
-                 class="mx-auto mb-4 h-12 sm:h-16 md:h-20 w-auto">
+                 class="mx-auto mb-4 h-12 sm:h-16 md:h-40 w-auto">
             <!-- <h1 id="wheelTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Oasis Spin Wheel's
             </h1>
@@ -356,7 +397,7 @@
         </div>
         
         <!-- Wheel Container -->
-        <div class="">
+        <div class="w-full max-w-md mx-auto">
             <div class="wheel-container floating-animation">
                 <div class="wheel-pointer"></div>
                 <div id="wheel" class="wheel">
@@ -367,8 +408,9 @@
                     class="spin-button"
                     onclick="spinWheel()"
                 >
-                    <span id="spinText">🎲<br>SPIN</span>
+                    <span id="spinText"><br>SPIN</span>
                 </button>
+                <div class="spin-handle"></div>
             </div>
         </div>
         
@@ -376,14 +418,16 @@
         <div id="result" class="result-card hidden w-full max-w-sm transform transition-all duration-500 scale-95 opacity-0">
             <p class="text-sm font-medium text-white/80 mb-2">Registered Phone: <span id="resultRecordedId" class="font-bold"></span></p>
             
-            <h3 class="text-xl font-bold mb-3 relative z-10">Congratulations!</h3>
+            <h3 class="text-xl font-bold mb-3 relative z-10">Congratulations! Offer Unlocked:</h3>
             <p class="text-2xl font-bold mb-4 relative z-10" id="resultText"></p>
+
+
             <div class="mt-4 p-5 bg-white/25 rounded-xl border border-white/30 backdrop-blur-sm relative z-10">
                 <p class="text-sm font-semibold mb-2 text-white/90">🎫 Your Coupon Code:</p>
                 <p class="text-xl font-mono font-bold tracking-wider text-white" id="couponCode"></p>
             </div>
             <div class="mt-4 text-xs text-white/90 font-medium space-y-1">
-                <p>Show the code at the billing counter to avail the discount.</p>
+                <p>Show the code at the clinic billing counter to avail the offer.</p>
                 <p class="font-bold">Do not refresh this page.</p>
             </div>
             <div class="mt-6 w-16 h-1 bg-white/40 rounded-full mx-auto relative z-10"></div>
@@ -415,62 +459,14 @@
         <!-- Segment Management -->
      
         
-        <!-- Privacy Policy Modal -->
-        <div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-            <div class="glass-card p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Terms & Conditions – Wheel of Hope</h2>
-                    <button onclick="hidePrivacyModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
-                </div>
-                
-                <div class="text-sm text-gray-700 space-y-3">
-                    <p>1. The "Wheel of Hope" Contest is organized and operated by Oasis Fertility ("Organizer", "We", "Us").</p>
-                    <p>2. The Contest is open only to eligible married couples who comply with ART (Assisted Reproductive Technology) Regulations.</p>
-                    <p>3. This offer is exclusively available to patients who have been evaluated and allocated an IVF cycle at any Oasis Fertility centre after payment of the minimum advance.</p>
-                    <p>4. The Wheel of Hope activity will be conducted in person at the clinic on the day of IVF cycle allocation.</p>
-                    <p>5. Only one spin per patient is permitted under this Contest.</p>
-                    <p>6. A unique code will be generated upon spinning the wheel, which must be shared by the participant with the centre team during the same-day billing process.</p>
-                    <p>7. All rewards will be applied as immediate, same-day discounts on the billing for the IVF cycle. Rewards cannot be applied retroactively or deferred to another day.</p>
-                    <p>8. The participant will not be eligible for any other discounts or promotional offers throughout the IVF cycle or associated treatments once the Wheel of Hope benefit is claimed.</p>
-                    <p>9. If the billing amount is less than the reward value, the remaining balance is forfeited — no cash refund or carryover will be provided.</p>
-                    <p>10. Rewards are non-encashable, non-transferable, and valid only for the patient to whom the reward was issued.</p>
-                    <p>11. The "Free IVF" reward includes one standard IVF cycle only, and specifically excludes:</p>
-                    <ul class="ml-6 list-disc">
-                        <li>Medicines and pharmacy bills</li>
-                        <li>Embryo/sperm freezing charges</li>
-                        <li>Donor costs</li>
-                        <li>Advanced laboratory procedures, etc;</li>
-                    </ul>
-                    <p>12. Discounts apply only to services billed directly by Oasis Fertility and cannot be used for:</p>
-                    <ul class="ml-6 list-disc">
-                        <li>Diagnostic labs or pharmacy invoices</li>
-                        <li>Third-party services or outsourced procedures</li>
-                        <li>Add-ons like genetic screening, donor cycles, embryo freezing, or surrogacy, unless explicitly stated otherwise</li>
-                    </ul>
-                    <p>13. In the event a patient is medically disqualified post-allocation, the reward will automatically stand void.</p>
-                    <p>14. Oasis Fertility reserves the right to verify identity and medical eligibility prior to applying any discount.</p>
-                    <p>15. Any misuse, misrepresentation, or attempt to manipulate the process (including multiple entries, proxy spins, or false identities) will result in immediate disqualification and reward cancellation.</p>
-                    <p>16. The reward must be redeemed on the same day as the spin. No extensions will be allowed.</p>
-                    <p>17. Oasis Fertility shall not be liable for delays or cancellations of the campaign due to force majeure events such as strikes, natural disasters, pandemics, or technical disruptions.</p>
-                    <p>18. Participation in this Contest does not guarantee any clinical or medical outcome, and all treatments will proceed as per standard medical protocols and informed consent.</p>
-                    <p>19. The campaign will run from [Insert Start Date] to [Insert End Date], unless extended or withdrawn at the sole discretion of the Organizer.</p>
-                    <p>20. By participating, the patient consents to the limited use of their first name, city, or anonymized testimonials for marketing and promotional purposes.</p>
-                    <p>21. Participants will be governed by the Privacy Policy available at <a href="https://www.oasisindia.in" target="_blank" class="text-blue-600 hover:underline">www.oasisindia.in</a>.</p>
-                    <p>22. All decisions made by the clinic's management and medical team regarding Contest participation and reward validity will be final and binding.</p>
-                    <p>23. Any disputes arising out of or related to this Contest will be subject to the exclusive jurisdiction of the courts in Hyderabad, Telangana.</p>
-                </div>
-                
-                <div class="mt-6 text-center">
-                    <button onclick="hidePrivacyModal()" class="add-button">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Footer -->
         <div class="text-center text-xs text-gray-500 mt-8">
-            <p>Tap to spin | <button onclick="showPrivacyModal()" class="text-blue-600 hover:underline cursor-pointer">Privacy Policy</button></p>
+            <p>
+                <a href="https://www.olivaclinic.com/privacy-policy/" target="_blank" class="text-blue-600 hover:underline">Privacy Policy</a> |
+                <a href="https://www.olivaclinic.com/terms-conditions/" target="_blank" class="text-blue-600 hover:underline">Terms & Conditions</a>
+            </p>
         </div>
     </div>
 
@@ -481,8 +477,22 @@
             return urlParams.get(name);
         }
         
+        // Capture UTM parameters
+        function captureUtmParameters() {
+            return {
+                utm_source: getUrlParameter('utm_source') || '',
+                utm_medium: getUrlParameter('utm_medium') || '',
+                utm_campaign: getUrlParameter('utm_campaign') || '',
+                utm_term: getUrlParameter('utm_term') || '',
+                utm_content: getUrlParameter('utm_content') || ''
+            };
+        }
+        
+        // Store UTM parameters for later use
+        const utmParameters = captureUtmParameters();
+        
         // Get recorded ID from URL or session storage
-        let recordedId = getUrlParameter('recordedId') || sessionStorage.getItem('phoneNumber');
+        let recordedId = getUrlParameter('recordedId');
         
         // Wheel options will be loaded from API
         let wheelOptions = [];
@@ -672,46 +682,57 @@
                     canSpin = data.canSpin;
                     currentWeek = data.currentWeek;
                     
+                    // Helper to safely set text content
+                    const setText = (id, text) => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.textContent = text;
+                        } else {
+                            console.warn(`Element with ID '${id}' not found.`);
+                        }
+                    };
+
                     // Update UI elements
-                    document.getElementById('wheelTitle').textContent = data.settings.wheel_title || '🎯 Oasis Spin Wheel';
-                    document.getElementById('wheelDescription').textContent = data.settings.wheel_description || 'Spin once and win amazing discounts on IVF treatments!';
-                    
-                    // Update current week if element exists
-                    const currentWeekElement = document.getElementById('currentWeek');
-                    if (currentWeekElement) {
-                        currentWeekElement.textContent = currentWeek;
-                    }
+                    setText('wheelTitle', data.settings.wheel_title || '🎯 Oasis Spin Wheel');
+                    setText('wheelDescription', data.settings.wheel_description || 'Spin once and win amazing discounts on IVF treatments!');
+                    setText('currentWeek', currentWeek);
                     
                     // Show previous result ONLY if user already spun AND has previous result
                     if (!canSpin && data.previousResult) {
-                        document.getElementById('previousResult').textContent = data.previousResult;
-                        document.getElementById('statusRecordedId').textContent = recordedId;
+                        setText('previousResult', data.previousResult);
+                        setText('statusRecordedId', recordedId);
                         
-                        // Show coupon code if available
                         if (data.previousCouponCode) {
-                            document.getElementById('previousCouponCode').textContent = data.previousCouponCode;
+                            setText('previousCouponCode', data.previousCouponCode);
                         } else {
-                            document.getElementById('previousCouponCode').textContent = 'Code not available';
+                            setText('previousCouponCode', 'Code not available');
                         }
                         
-                        document.getElementById('spinStatus').classList.remove('hidden');
-                        document.getElementById('spinBtn').disabled = true;
-                        document.getElementById('spinText').innerHTML = '✓<br>USED';
+                        const spinStatusEl = document.getElementById('spinStatus');
+                        if (spinStatusEl) spinStatusEl.classList.remove('hidden');
+                        
+                        const spinBtnEl = document.getElementById('spinBtn');
+                        if (spinBtnEl) spinBtnEl.disabled = true;
+
+                        const spinTextEl = document.getElementById('spinText');
+                        if (spinTextEl) spinTextEl.innerHTML = '✓<br>USED';
+
                     } else if (canSpin) {
                         // User can spin - make sure button is enabled
-                        document.getElementById('spinBtn').disabled = false;
-                        document.getElementById('spinText').innerHTML = '🎲<br>SPIN';
+                        const spinBtnEl = document.getElementById('spinBtn');
+                        if (spinBtnEl) spinBtnEl.disabled = false;
+
+                        const spinTextEl = document.getElementById('spinText');
+                        if (spinTextEl) spinTextEl.innerHTML = '🎲<br>SPIN';
                     }
                     
                     createWheel();
                 } else {
                     console.error('Failed to load wheel data:', data.error);
-                    // Use fallback data for testing
                     loadFallbackData();
                 }
             } catch (error) {
                 console.error('Error loading wheel data:', error);
-                // Use fallback data when API is not available
                 loadFallbackData();
             }
         }
@@ -792,70 +813,68 @@
                 
                 if (winner) {
 
-                    // --- NEW ROTATION LOGIC ---
+                    // --- DYNAMIC ROTATION LOGIC ---
 
-                    // 1. Define the mapping from API result text to a simple label
-                    const apiToLabelMap = {
-                        "10K Discount": "10K",
-                        "15K Discount": "15K",
-                        "20K Discount": "20K",
-                        "50K Discount": "50K",
-                        "1 Lakh Discount": "1L",
-                        "Free IVF": "Free IVF"
-                    };
+                    // 1. Find the index of the winner in the wheelOptions array, which matches the visual layout
+                    const winnerIndex = wheelOptions.findIndex(option => option.text === winner.text);
 
-                    // 2. Define the degree ranges for each label from the user's table
-                    const degreeRanges = {
-                        "1L":       [{ min: 0, max: 60 }, { min: 360, max: 420 }, { min: 720, max: 780 }, { min: 1080, max: 1140 }, { min: 1440, max: 1500 }, { min: 1800, max: 1860 }, { min: 2160, max: 2220 }, { min: 2520, max: 2580 }, { min: 2880, max: 2940 }, { min: 3240, max: 3300 }],
-                        "Free IVF": [{ min: 60, max: 120 }, { min: 420, max: 480 }, { min: 780, max: 840 }, { min: 1140, max: 1200 }, { min: 1500, max: 1560 }, { min: 1860, max: 1920 }, { min: 2220, max: 2280 }, { min: 2580, max: 2640 }, { min: 2940, max: 3000 }, { min: 3300, max: 3360 }],
-                        "50K":      [{ min: 120, max: 180 }, { min: 480, max: 540 }, { min: 840, max: 900 }, { min: 1200, max: 1260 }, { min: 1560, max: 1620 }, { min: 1920, max: 1980 }, { min: 2280, max: 2340 }, { min: 2640, max: 2700 }, { min: 3000, max: 3060 }, { min: 3360, max: 3420 }],
-                        "20K":      [{ min: 180, max: 240 }, { min: 540, max: 600 }, { min: 900, max: 960 }, { min: 1260, max: 1320 }, { min: 1620, max: 1680 }, { min: 1980, max: 2040 }, { min: 2340, max: 2400 }, { min: 2700, max: 2760 }, { min: 3060, max: 3120 }, { min: 3420, max: 3480 }],
-                        "15K":      [{ min: 240, max: 300 }, { min: 600, max: 660 }, { min: 960, max: 1020 }, { min: 1320, max: 1380 }, { min: 1680, max: 1740 }, { min: 2040, max: 2100 }, { min: 2400, max: 2460 }, { min: 2760, max: 2820 }, { min: 3120, max: 3180 }, { min: 3480, max: 3540 }],
-                        "10K":      [{ min: 300, max: 360 }, { min: 660, max: 720 }, { min: 1020, max: 1080 }, { min: 1380, max: 1440 }, { min: 1740, max: 1800 }, { min: 2100, max: 2160 }, { min: 2460, max: 2520 }, { min: 2820, max: 2880 }, { min: 3180, max: 3240 }, { min: 3540, max: 3600 }]
-                    };
-
-                    // 3. Get the simple label for the winning result
-                    const winnerLabel = apiToLabelMap[winner.text];
-
-                    if (!winnerLabel || !degreeRanges[winnerLabel]) {
-                        console.error("Could not find a matching label or degree range for winner:", winner.text);
-                        // Fallback to a random spin if winner is not in the map
+                    if (winnerIndex === -1) {
+                        // This should not happen if data from get-wheel-data.php and spin.php are consistent
+                        console.error("Winning prize not found in wheel options!", winner);
+                        // Fallback to a random spin
                         wheel.style.transform = `rotate(${360 * 5 + Math.random() * 360}deg)`;
-                        return;
+                    } else {
+                        // 2. Calculate the rotation
+                        const segmentCount = wheelOptions.length;
+                        const segmentAngle = 360 / segmentCount;
+                        
+                        // The wheel is drawn with 0 degrees at the top. We want to land on the middle of the segment.
+                        const winningAngle = (winnerIndex * segmentAngle) + (segmentAngle / 2);
+
+                        // Add a small random offset within the segment to make it look less robotic
+                        const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.8);
+
+                        // Add multiple full rotations for animation effect. 
+                        // The final rotation should align the winning angle with the top pointer (0 degrees).
+                        const totalRotation = (360 * 5) - winningAngle - randomOffset;
+
+                        console.log('🎯 Dynamic Rotation Debug:', {
+                            winner: winner.text,
+                            winnerIndex: winnerIndex,
+                            segmentAngle: segmentAngle.toFixed(1),
+                            winningAngle: winningAngle.toFixed(1),
+                            totalRotation: totalRotation.toFixed(1)
+                        });
+
+                        // Apply rotation
+                        wheel.style.transform = `rotate(${totalRotation}deg)`;
                     }
 
-                    // 4. Get the possible degree ranges for the winning label
-                    const possibleRanges = degreeRanges[winnerLabel];
-
-                    // 5. Randomly select one of the possible ranges
-                    const selectedRange = possibleRanges[Math.floor(Math.random() * possibleRanges.length)];
-
-                    // 6. Pick a random degree value within the selected range
-                    // To make it more visually appealing, we avoid the exact edges of the range.
-                    const margin = 5; // 5 degrees margin from each edge
-                    const randomAngle = Math.random() * (selectedRange.max - selectedRange.min - 2 * margin) + (selectedRange.min + margin);
-
-                    const totalRotation = randomAngle;
-
-                    console.log('🎯 New Rotation Debug:', {
-                        winner: winner.text,
-                        label: winnerLabel,
-                        selectedRange: `${selectedRange.min}° - ${selectedRange.max}°`,
-                        totalRotation: totalRotation.toFixed(1)
-                    });
-
-                    // --- END OF NEW ROTATION LOGIC ---
-                    
-                    // Apply rotation
-                    wheel.style.transform = `rotate(${totalRotation}deg)`;
+                    // --- END OF DYNAMIC ROTATION LOGIC ---
 
                     // Show result after animation
                     setTimeout(() => {
+                        const resultTextMapping = {
+                            "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
+                            "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
+                            "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
+                            "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
+                            "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
+                        };
+
+                        const resultText = resultTextMapping[winner.text] || winner.text;
+
                         // Update result display
                         document.getElementById('resultRecordedId').textContent = recordedId;
-                        document.getElementById('resultText').textContent = winner.text;
+                        document.getElementById('resultText').innerHTML = resultText;
                         document.getElementById('couponCode').textContent = winner.code;
                         
+                        // Send SMS
+                        sendSms(recordedId, winner.code);
+
+                        // Create lead in Zoho CRM
+                        createLeadInZoho(recordedId, winner.code, winner.text);
+
                         // Show result with animation
                         result.classList.remove('hidden');
                         setTimeout(() => {
@@ -887,6 +906,63 @@
                 spinBtn.disabled = false;
                 spinText.innerHTML = '🎲<br>SPIN';
                 isSpinning = false;
+            }
+        }
+
+        async function sendSms(mobile, couponCode) {
+            try {
+                const response = await fetch('api/send-sms.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mobile: mobile,
+                        couponCode: couponCode
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    // Display custom error modal instead of alert
+                    showSmsErrorModal('There was an error sending the SMS: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error sending SMS:', error);
+                // Display custom error modal instead of alert
+                showSmsErrorModal('An error occurred while sending the SMS. Please try again.');
+            }
+        }
+
+        async function createLeadInZoho(mobile, couponCode, prize) {
+            try {
+                const response = await fetch('api/create-lead.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mobile: mobile,
+                        couponCode: couponCode,
+                        prize: prize,
+                        utm_source: utmParameters.utm_source,
+                        utm_medium: utmParameters.utm_medium,
+                        utm_campaign: utmParameters.utm_campaign,
+                        utm_term: utmParameters.utm_term,
+                        utm_content: utmParameters.utm_content
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('Lead created/updated successfully:', result);
+                } else {
+                    console.error('Failed to create/update lead:', result.error);
+                }
+            } catch (error) {
+                console.error('Error creating lead in Zoho:', error);
             }
         }
         
@@ -1180,15 +1256,17 @@
         function hideOtpModal() {
             document.getElementById('otpModal').classList.add('hidden');
         }
-        
-        // Privacy Policy modal functionality
-        function showPrivacyModal() {
-            document.getElementById('privacyModal').classList.remove('hidden');
+
+        function showSmsErrorModal(errorMessage) {
+            document.getElementById('smsErrorMessage').textContent = errorMessage;
+            document.getElementById('smsErrorModal').classList.remove('hidden');
+        }
+
+        function hideSmsErrorModal() {
+            document.getElementById('smsErrorModal').classList.add('hidden');
         }
         
-        function hidePrivacyModal() {
-            document.getElementById('privacyModal').classList.add('hidden');
-        }
+        
         
         // Show error message to user
         function showErrorMessage(message) {
@@ -1221,6 +1299,8 @@
 
         async function sendOtp(phoneNumber) {
             const button = document.querySelector('#phoneLoginForm button');
+            const errorDiv = document.getElementById('phoneError');
+            errorDiv.textContent = ''; // Clear previous errors
             button.disabled = true;
             button.textContent = 'Sending OTP...';
 
@@ -1243,11 +1323,11 @@
                     hidePhoneLoginModal();
                     showOtpModal();
                 } else {
-                    alert('Failed to send OTP: ' + result.message);
+                    errorDiv.textContent = result.message;
                 }
             } catch (error) {
                 console.error('Error sending OTP:', error);
-                alert('An error occurred while sending the OTP. Please try again.');
+                errorDiv.textContent = 'An error occurred. Please try again.';
             } finally {
                 button.disabled = false;
                 button.textContent = 'Continue to Spin Wheel';
@@ -1277,7 +1357,6 @@
                     // OTP Verified
                     const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
                     recordedId = cleanPhoneNumber;
-                    sessionStorage.setItem('phoneNumber', cleanPhoneNumber);
                     sessionStorage.removeItem('tempPhoneNumber');
                     
                     console.log('Phone number verified and set as recordedId:', cleanPhoneNumber);
@@ -1301,14 +1380,29 @@
             e.preventDefault();
             const phoneInput = document.getElementById('phoneInput');
             const phoneNumber = phoneInput.value.trim();
+            const dummyNumber = '9999999999'; // The dummy number
 
             if (!validatePhoneNumber(phoneNumber)) {
                 alert('Please enter a valid 10-digit phone number');
                 phoneInput.focus();
                 return;
             }
-            
-            sendOtp(phoneNumber);
+
+            if (phoneNumber === dummyNumber) {
+                // It's the dummy number, bypass OTP
+                console.log('Dummy number entered, bypassing OTP.');
+                recordedId = phoneNumber;
+                hidePhoneLoginModal();
+                loadWheelData();
+            } else {
+                // It's a regular number, send OTP
+                sendOtp(phoneNumber);
+            }
+        });
+
+        // Clear error message on input
+        document.getElementById('phoneInput').addEventListener('input', function() {
+            document.getElementById('phoneError').textContent = '';
         });
 
         // Handle OTP verification form submission

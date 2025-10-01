@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="floating-animation">
                     <div class="text-6xl mb-4">🎯</div>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">Oasis Spin</h1>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">olivaclinic Spin</h1>
                 <p class="text-gray-600">Admin Login</p>
             </div>
             

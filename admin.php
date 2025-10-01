@@ -220,7 +220,7 @@ if (isset($_GET['logout'])) {
             <div class="glass-card p-6">
                 <div class="flex flex-col md:flex-row justify-between items-center">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-800 mb-2">Oasis Spin Admin Panel</h1>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">Oliva Spin Admin Panel</h1>
                         <p class="text-gray-600">Manage your spinning wheel configuration and track performance</p>
                     </div>
                     <div class="mt-4 md:mt-0 flex space-x-4">
@@ -683,11 +683,16 @@ if (isset($_GET['logout'])) {
         }
         
         // Load spins
-        async function loadSpins() {
+        async function loadSpins(fetchAll = false) {
             console.log('Loading spins data...');
             
+            let url = 'api/admin-data.php?action=spins';
+            if (fetchAll) {
+                url += '&limit=all';
+            }
+
             try {
-                const response = await fetch('api/admin-data.php?action=spins');
+                const response = await fetch(url);
                 console.log('Spins API response status:', response.status);
                 
                 if (!response.ok) {
@@ -1003,7 +1008,67 @@ if (isset($_GET['logout'])) {
             const date = new Date(timestamp > 1000000000000 ? timestamp : timestamp * 1000);
             return date.toLocaleString();
         }
+
+        function exportToCSV(data, filename, headers) {
+            if (data.length === 0) {
+                alert('No data to export.');
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += headers.join(",") + "\r\n";
+
+            // CSV Rows
+            data.forEach(item => {
+                const row = headers.map(header => {
+                    const key = header.toLowerCase().replace(/ /g, '_');
+                    return item[key] || 'N/A';
+                });
+                csvContent += row.join(",") + "\r\n";
+            });
+
+            // Create and trigger download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function exportSpins() {
+            try {
+                await loadSpins(true); // Fetch all spins
+
+                const headers = ["Recorded ID", "Result", "Unique Coupon Code", "Timestamp", "IP Address"];
+                const data = spins.map(spin => ({
+                    'recorded_id': spin.recorded_id,
+                    'result': spin.result,
+                    'unique_coupon_code': spin.coupon_code,
+                    'timestamp': formatDate(spin.timestamp),
+                    'ip_address': spin.ip_address
+                }));
+
+                exportToCSV(data, "spin_history.csv", headers);
+
+            } catch (error) {
+                console.error('Error exporting spins:', error);
+                alert('Failed to export spin history. Please try again.');
+            } finally {
+                // Reload the paginated view
+                loadSpins();
+            }
+        }
         
+        // Utility function to format date
+        function formatDate(timestamp) {
+            // Handle both JS timestamp (milliseconds) and Unix timestamp (seconds)
+            const date = new Date(timestamp > 1000000000000 ? timestamp : timestamp * 1000);
+            return date.toLocaleString();
+        }
+
         // Modal functions
         function openAddCouponModal() {
             document.getElementById('addCouponModal').style.display = 'block';
@@ -1072,6 +1137,38 @@ if (isset($_GET['logout'])) {
             }
         });
         
+        function exportSpins() {
+            if (spins.length === 0) {
+                alert('No spin data to export.');
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Recorded ID,Result,Unique Coupon Code,Timestamp,IP Address\r\n";
+
+            // CSV Rows
+            spins.forEach(spin => {
+                const row = [
+                    spin.recorded_id || 'N/A',
+                    spin.result || 'N/A',
+                    spin.coupon_code || 'N/A',
+                    formatDate(spin.timestamp),
+                    spin.ip_address || 'N/A'
+                ].join(",");
+                csvContent += row + "\r\n";
+            });
+
+            // Create and trigger download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "spin_history.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         // Initialize dashboard on page load
         loadDashboard();
     </script>

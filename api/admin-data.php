@@ -128,40 +128,56 @@ function getSpinsData() {
     global $pdo;
     
     try {
-        $page = (int)($_GET['page'] ?? 1);
-        $limit = (int)($_GET['limit'] ?? 50);
-        $offset = ($page - 1) * $limit;
-        
-        // Ensure positive values
-        $page = max(1, $page);
-        $limit = max(1, min(100, $limit)); // Cap at 100 to prevent abuse
-        $offset = max(0, $offset);
-        
-        // Use named parameters for LIMIT/OFFSET as they work better with some MySQL configurations
-        $stmt = $pdo->prepare("SELECT * FROM spins ORDER BY timestamp DESC LIMIT :limit OFFSET :offset");
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        $spins = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Get total count
-        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM spins");
-        $countStmt->execute();
-        $totalSpins = (int)$countStmt->fetchColumn();
-        
-        sendJsonResponse([
-            'success' => true,
-            'spins' => $spins,
-            'total' => $totalSpins,
-            'page' => $page,
-            'limit' => $limit,
-            'debug' => [
-                'query_limit' => $limit,
-                'query_offset' => $offset,
-                'result_count' => count($spins)
-            ]
-        ]);
+        $fetchAll = isset($_GET['limit']) && $_GET['limit'] === 'all';
+
+        if ($fetchAll) {
+            $stmt = $pdo->prepare("SELECT * FROM spins ORDER BY timestamp DESC");
+            $stmt->execute();
+            $spins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $totalSpins = count($spins);
+
+            sendJsonResponse([
+                'success' => true,
+                'spins' => $spins,
+                'total' => $totalSpins,
+            ]);
+
+        } else {
+            $page = (int)($_GET['page'] ?? 1);
+            $limit = (int)($_GET['limit'] ?? 50);
+            $offset = ($page - 1) * $limit;
+            
+            // Ensure positive values
+            $page = max(1, $page);
+            $limit = max(1, min(100, $limit)); // Cap at 100 to prevent abuse
+            $offset = max(0, $offset);
+            
+            // Use named parameters for LIMIT/OFFSET as they work better with some MySQL configurations
+            $stmt = $pdo->prepare("SELECT * FROM spins ORDER BY timestamp DESC LIMIT :limit OFFSET :offset");
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $spins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Get total count
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM spins");
+            $countStmt->execute();
+            $totalSpins = (int)$countStmt->fetchColumn();
+            
+            sendJsonResponse([
+                'success' => true,
+                'spins' => $spins,
+                'total' => $totalSpins,
+                'page' => $page,
+                'limit' => $limit,
+                'debug' => [
+                    'query_limit' => $limit,
+                    'query_offset' => $offset,
+                    'result_count' => count($spins)
+                ]
+            ]);
+        }
         
     } catch (Exception $e) {
         error_log("getSpinsData error: " . $e->getMessage());

@@ -2,8 +2,8 @@
 // Database configuration
 $host = 'localhost';
 $dbname = 'u955765309_olivaspin';
-$username = 'u955765309_faraz';
-$password = '2m!OAz~&bUQ';
+$username = 'root';
+$password = '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
@@ -244,6 +244,11 @@ function selectWinningCoupon() {
 
 // Helper function to check if user can spin
 function canUserSpin($recordedId) {
+    // Check for the dummy number
+    if ($recordedId === '9999999999') {
+        return true; // Always allow dummy number to spin
+    }
+
     global $pdo;
     $stmt = $pdo->prepare("SELECT spin_count FROM user_spins WHERE recorded_id = ?");
     $stmt->execute([$recordedId]);
