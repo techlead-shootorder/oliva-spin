@@ -52,11 +52,17 @@ try {
     }
     
     $recordedId = trim($input['recordedId']);
-    logDebug("Processing recordedId", $recordedId);
+    $userName = isset($input['userName']) ? trim($input['userName']) : '';
+    logDebug("Processing recordedId and userName", ['recordedId' => $recordedId, 'userName' => $userName]);
+    
+    // Debug: Log if userName is empty
+    if (empty($userName)) {
+        logDebug("WARNING: userName is empty!", $input);
+    }
     
     // Check if user can spin
     logDebug("Checking if user can spin");
-    if (!canUserSpin($recordedId)) {
+    if (!canUserSpin($recordedId, $userName)) {
         logDebug("User cannot spin - already spun", $recordedId);
         http_response_code(400);
         echo json_encode(['error' => 'You have already spun the wheel']);
@@ -139,17 +145,18 @@ try {
     
     // Increment user spin count
     logDebug("Incrementing user spin count");
-    incrementUserSpin($recordedId);
+    incrementUserSpin($recordedId, $userName);
     logDebug("User spin count incremented");
     
     // Record the spin result
     logDebug("Recording spin result");
     $stmt = $pdo->prepare("
-        INSERT INTO spins (recorded_id, result, coupon_code, timestamp, ip_address) 
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO spins (recorded_id, fullname, result, coupon_code, timestamp, ip_address) 
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
         $recordedId,
+        $userName,
         $winningCoupon['discount_text'],
         $assignedCode,
         time(),

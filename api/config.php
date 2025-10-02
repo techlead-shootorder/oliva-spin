@@ -64,6 +64,7 @@ try {
         CREATE TABLE IF NOT EXISTS user_spins (
             id INT AUTO_INCREMENT PRIMARY KEY,
             recorded_id VARCHAR(255) NOT NULL,
+            fullname VARCHAR(300) DEFAULT NULL,
             spin_count INT NOT NULL DEFAULT 0,
             last_spin_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY unique_recorded_id (recorded_id)
@@ -89,6 +90,13 @@ try {
     // Add coupon_code column to spins table if it doesn't exist
     try {
         $pdo->exec("ALTER TABLE spins ADD COLUMN coupon_code VARCHAR(50) NULL");
+    } catch (PDOException $e) {
+        // Column might already exist, ignore error
+    }
+    
+    // Add fullname column to user_spins table if it doesn't exist
+    try {
+        $pdo->exec("ALTER TABLE user_spins ADD COLUMN fullname VARCHAR(300) DEFAULT NULL");
     } catch (PDOException $e) {
         // Column might already exist, ignore error
     }
@@ -243,7 +251,7 @@ function selectWinningCoupon() {
 }
 
 // Helper function to check if user can spin
-function canUserSpin($recordedId) {
+function canUserSpin($recordedId, $userName = '') {
     // Check for the dummy number
     if ($recordedId === '9999999999') {
         return true; // Always allow dummy number to spin
@@ -256,8 +264,8 @@ function canUserSpin($recordedId) {
     
     if (!$result) {
         // First time user
-        $insertStmt = $pdo->prepare("INSERT INTO user_spins (recorded_id, spin_count) VALUES (?, 0)");
-        $insertStmt->execute([$recordedId]);
+        $insertStmt = $pdo->prepare("INSERT INTO user_spins (recorded_id, fullname, spin_count) VALUES (?, ?, 0)");
+        $insertStmt->execute([$recordedId, $userName]);
         return true;
     }
     
@@ -265,10 +273,10 @@ function canUserSpin($recordedId) {
 }
 
 // Helper function to increment user spin count
-function incrementUserSpin($recordedId) {
+function incrementUserSpin($recordedId, $userName = '') {
     global $pdo;
-    $stmt = $pdo->prepare("UPDATE user_spins SET spin_count = spin_count + 1, last_spin_at = CURRENT_TIMESTAMP WHERE recorded_id = ?");
-    $stmt->execute([$recordedId]);
+    $stmt = $pdo->prepare("UPDATE user_spins SET spin_count = spin_count + 1, last_spin_at = CURRENT_TIMESTAMP, fullname = ? WHERE recorded_id = ?");
+    $stmt->execute([$userName, $recordedId]);
 }
 
 // Helper function to generate unique coupon code

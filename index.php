@@ -297,12 +297,23 @@
         <div id="phoneLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
             <div class="glass-card p-6 w-full max-w-sm">
                 <div class="text-center mb-6">
-                    <div class="text-4xl mb-3">📱</div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">Enter Your Phone Number</h2>
-                    <p class="text-gray-600 text-sm">Please enter your phone number to continue</p>
+                   
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Enter Your Details</h2>
+                    <p class="text-gray-600 text-sm">Please enter your name and phone number to continue</p>
                 </div>
                 
                 <form id="phoneLoginForm" class="space-y-4">
+                    <div>
+                        <input 
+                            type="text" 
+                            id="nameInput" 
+                            placeholder="Enter your full name"
+                            class="input-field"
+                            required
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Enter your full name</p>
+                    </div>
+                    
                     <div>
                         <input 
                             type="tel" 
@@ -329,7 +340,7 @@
         <div id="otpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
             <div class="glass-card p-6 w-full max-w-sm">
                 <div class="text-center mb-6">
-                    <div class="text-4xl mb-3">🔐</div>
+                    
                     <h2 class="text-xl font-bold text-gray-800 mb-2">Verify OTP</h2>
                     <p class="text-gray-600 text-sm">An OTP has been sent to your number. Please enter it below.</p>
                 </div>
@@ -359,7 +370,7 @@
         <div id="smsErrorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
             <div class="glass-card p-6 w-full max-w-sm">
                 <div class="text-center mb-6">
-                    <div class="text-4xl mb-3">📱❌</div>
+                    
                     <h2 class="text-xl font-bold text-red-600 mb-2">SMS Not Sent</h2>
                     <p class="text-gray-600 text-sm" id="smsErrorMessage">There was an error sending the SMS with your coupon code.</p>
                 </div>
@@ -418,17 +429,16 @@
         <div id="result" class="result-card hidden w-full max-w-sm transform transition-all duration-500 scale-95 opacity-0">
             <p class="text-sm font-medium text-white/80 mb-2">Registered Phone: <span id="resultRecordedId" class="font-bold"></span></p>
             
-            <h3 class="text-xl font-bold mb-3 relative z-10">Congratulations! Offer Unlocked:</h3>
+            <h3 class="text-xl  mb-3 relative z-10">Congratulations! <span class="font-bold"> Unlocked:</span></h3>
             <p class="text-2xl font-bold mb-4 relative z-10" id="resultText"></p>
 
 
-            <div class="mt-4 p-5 bg-white/25 rounded-xl border border-white/30 backdrop-blur-sm relative z-10">
-                <p class="text-sm font-semibold mb-2 text-white/90">🎫 Your Coupon Code:</p>
-                <p class="text-xl font-mono font-bold tracking-wider text-white" id="couponCode"></p>
+            <div class="mt-4 p-5 bg-white rounded-xl backdrop-blur-sm relative z-10" style="box-shadow: 8px 8px 0px #E89B3B">
+                <p class="text-sm font-semibold mb-2 text-black">Your Coupon Code:</p>
+                <p class="text-xl font-mono font-bold tracking-wider" style="color: #01a4a6" id="couponCode"></p>
             </div>
             <div class="mt-4 text-xs text-white/90 font-medium space-y-1">
                 <p>Show the code at the clinic billing counter to avail the offer.</p>
-                <p class="font-bold">Do not refresh this page.</p>
             </div>
             <div class="mt-6 w-16 h-1 bg-white/40 rounded-full mx-auto relative z-10"></div>
         </div>
@@ -445,11 +455,11 @@
                     <p class="text-sm text-gray-600 mb-2">You have already spun and won:</p>
                     <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border border-indigo-200">
                         <p class="text-lg font-bold text-indigo-800" id="previousResult"></p>
-                        <div class="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200 shadow-sm">
-                            <p class="text-sm text-emerald-700 font-semibold mb-2">🎫 Your Coupon Code:</p>
+                        <div class="mt-4 p-4 bg-white from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200 shadow-sm">
+                            <p class="text-sm text-emerald-700 font-semibold mb-2">Your Coupon Code:</p>
                             <p class="text-lg font-mono font-bold text-emerald-800 tracking-wider" id="previousCouponCode"></p>
                         </div>
-                        <p class="text-sm text-indigo-600 mt-3 font-medium">🎉 Thank you for participating!</p>
+                        <p class="text-sm text-indigo-600 mt-3 font-medium">Thank you for participating!</p>
                     </div>
                 </div>
             </div>
@@ -488,8 +498,48 @@
             };
         }
         
-        // Store UTM parameters for later use
+        // Detect browser and OS
+        function getBrowserInfo() {
+            const userAgent = navigator.userAgent;
+            let browser = 'Unknown';
+            let os = 'Unknown';
+            
+            // Detect browser
+            if (userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1) {
+                browser = 'Chrome';
+            } else if (userAgent.indexOf('Firefox') > -1) {
+                browser = 'Firefox';
+            } else if (userAgent.indexOf('Safari') > -1 && userAgent.indexOf('Chrome') === -1) {
+                browser = 'Safari';
+            } else if (userAgent.indexOf('Edg') > -1) {
+                browser = 'Edge';
+            } else if (userAgent.indexOf('Opera') > -1 || userAgent.indexOf('OPR') > -1) {
+                browser = 'Opera';
+            }
+            
+            // Detect OS
+            if (userAgent.indexOf('Windows') > -1) {
+                os = 'Windows';
+            } else if (userAgent.indexOf('Mac') > -1) {
+                os = 'macOS';
+            } else if (userAgent.indexOf('Linux') > -1) {
+                os = 'Linux';
+            } else if (userAgent.indexOf('Android') > -1) {
+                os = 'Android';
+            } else if (userAgent.indexOf('iPhone') > -1 || userAgent.indexOf('iPad') > -1) {
+                os = 'iOS';
+            }
+            
+            return {
+                browser: browser,
+                os: os,
+                prev_url: document.referrer || ''
+            };
+        }
+        
+        // Store UTM parameters and browser info for later use
         const utmParameters = captureUtmParameters();
+        const browserInfo = getBrowserInfo();
         
         // Get recorded ID from URL or session storage
         let recordedId = getUrlParameter('recordedId');
@@ -708,14 +758,35 @@
                             setText('previousCouponCode', 'Code not available');
                         }
                         
-                        const spinStatusEl = document.getElementById('spinStatus');
-                        if (spinStatusEl) spinStatusEl.classList.remove('hidden');
+                        // Hide the wheel container completely
+                        const wheelContainer = document.querySelector('.wheel-container');
+                        if (wheelContainer) {
+                            wheelContainer.style.display = 'none';
+                        }
                         
-                        const spinBtnEl = document.getElementById('spinBtn');
-                        if (spinBtnEl) spinBtnEl.disabled = true;
+                        // Show only the main result card, hide the status card
+                        const resultTextMapping = {
+                            "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
+                            "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
+                            "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
+                            "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
+                            "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
+                        };
 
-                        const spinTextEl = document.getElementById('spinText');
-                        if (spinTextEl) spinTextEl.innerHTML = '✓<br>USED';
+                        const resultText = resultTextMapping[data.previousResult] || data.previousResult;
+                        
+                        // Update and show main result display
+                        document.getElementById('resultRecordedId').textContent = recordedId;
+                        document.getElementById('resultText').innerHTML = resultText;
+                        document.getElementById('couponCode').textContent = data.previousCouponCode || 'N/A';
+                        
+                        // Show result with animation
+                        const result = document.getElementById('result');
+                        result.classList.remove('hidden');
+                        setTimeout(() => {
+                            result.classList.remove('scale-95', 'opacity-0');
+                            result.classList.add('scale-100', 'opacity-100');
+                        }, 50);
 
                     } else if (canSpin) {
                         // User can spin - make sure button is enabled
@@ -766,6 +837,9 @@
                 return;
             }
             
+            // Debug: Log what we have in sessionStorage
+            console.log('About to spin - tempUserName:', sessionStorage.getItem('tempUserName'));
+            
             isSpinning = true;
             const spinBtn = document.getElementById('spinBtn');
             const spinText = document.getElementById('spinText');
@@ -786,14 +860,18 @@
                 
                 // Try API first, fallback to local selection if needed
                 try {
+                    const requestData = {
+                        recordedId: recordedId,
+                        userName: sessionStorage.getItem('tempUserName') || ''
+                    };
+                    console.log('Sending spin request with data:', requestData);
+                    
                     const response = await fetch('api/spin.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            recordedId: recordedId
-                        })
+                        body: JSON.stringify(requestData)
                     });
                     
                     const data = await response.json();
@@ -873,7 +951,12 @@
                         sendSms(recordedId, winner.code);
 
                         // Create lead in Zoho CRM
-                        createLeadInZoho(recordedId, winner.code, winner.text);
+                        const storedUserName = sessionStorage.getItem('tempUserName') || '';
+                        console.log('Creating lead with userName:', storedUserName);
+                        createLeadInZoho(recordedId, winner.code, winner.text, storedUserName);
+                        
+                        // Clear stored name after use
+                        sessionStorage.removeItem('tempUserName');
 
                         // Show result with animation
                         result.classList.remove('hidden');
@@ -935,7 +1018,7 @@
             }
         }
 
-        async function createLeadInZoho(mobile, couponCode, prize) {
+        async function createLeadInZoho(mobile, couponCode, prize, userName = '') {
             try {
                 const response = await fetch('api/create-lead.php', {
                     method: 'POST',
@@ -946,11 +1029,15 @@
                         mobile: mobile,
                         couponCode: couponCode,
                         prize: prize,
+                        user_name: userName,
                         utm_source: utmParameters.utm_source,
                         utm_medium: utmParameters.utm_medium,
                         utm_campaign: utmParameters.utm_campaign,
                         utm_term: utmParameters.utm_term,
-                        utm_content: utmParameters.utm_content
+                        utm_content: utmParameters.utm_content,
+                        browser: browserInfo.browser,
+                        os: browserInfo.os,
+                        prev_url: browserInfo.prev_url
                     }),
                 });
 
@@ -1265,6 +1352,45 @@
         function hideSmsErrorModal() {
             document.getElementById('smsErrorModal').classList.add('hidden');
         }
+
+        function showExistingUserResult(previousResult, previousCouponCode) {
+            // Set up the wheel to show the user has already played
+            canSpin = false;
+            
+            // Hide the entire wheel container
+            const wheelContainer = document.querySelector('.wheel-container');
+            if (wheelContainer) {
+                wheelContainer.style.display = 'none';
+            }
+            
+            // Show the result card with their previous win
+            const resultTextMapping = {
+                "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
+                "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
+                "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
+                "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
+                "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
+            };
+
+            const resultText = resultTextMapping[previousResult] || previousResult;
+            
+            // Update result display
+            document.getElementById('resultRecordedId').textContent = recordedId;
+            document.getElementById('resultText').innerHTML = resultText;
+            document.getElementById('couponCode').textContent = previousCouponCode;
+            
+            // Show result with animation
+            const result = document.getElementById('result');
+            result.classList.remove('hidden');
+            setTimeout(() => {
+                result.classList.remove('scale-95', 'opacity-0');
+                result.classList.add('scale-100', 'opacity-100');
+            }, 50);
+            
+            // Hide the spin status section (we only want the main result card)
+            const spinStatusEl = document.getElementById('spinStatus');
+            if (spinStatusEl) spinStatusEl.classList.add('hidden');
+        }
         
         
         
@@ -1297,7 +1423,7 @@
             return cleanPhone.length === 10 && /^\d{10}$/.test(cleanPhone);
         }
 
-        async function sendOtp(phoneNumber) {
+        async function sendOtp(phoneNumber, userName) {
             const button = document.querySelector('#phoneLoginForm button');
             const errorDiv = document.getElementById('phoneError');
             errorDiv.textContent = ''; // Clear previous errors
@@ -1307,6 +1433,7 @@
             const formData = new FormData();
             formData.append('action', 'ajax_contact_form_mobile_otp');
             formData.append('mobile_number', phoneNumber);
+            formData.append('user_name', userName);
 
             try {
                 const response = await fetch('api/otp.php', {
@@ -1318,10 +1445,17 @@
                 const result = JSON.parse(resultText);
 
                 if (result.type === 'success') {
-                    // Store phone number temporarily
+                    // Store phone number and name temporarily
                     sessionStorage.setItem('tempPhoneNumber', phoneNumber);
+                    sessionStorage.setItem('tempUserName', userName);
                     hidePhoneLoginModal();
                     showOtpModal();
+                } else if (result.type === 'existing_user') {
+                    // User already participated, show their winning card
+                    const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
+                    recordedId = cleanPhoneNumber;
+                    hidePhoneLoginModal();
+                    showExistingUserResult(result.previous_result, result.previous_coupon_code);
                 } else {
                     errorDiv.textContent = result.message;
                 }
@@ -1358,6 +1492,7 @@
                     const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
                     recordedId = cleanPhoneNumber;
                     sessionStorage.removeItem('tempPhoneNumber');
+                    sessionStorage.removeItem('tempUserName');
                     
                     console.log('Phone number verified and set as recordedId:', cleanPhoneNumber);
                     
@@ -1378,9 +1513,17 @@
         // Handle phone login form submission
         document.getElementById('phoneLoginForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const nameInput = document.getElementById('nameInput');
             const phoneInput = document.getElementById('phoneInput');
+            const userName = nameInput.value.trim();
             const phoneNumber = phoneInput.value.trim();
             const dummyNumber = '9999999999'; // The dummy number
+
+            if (!userName || userName.length < 2) {
+                alert('Please enter your full name');
+                nameInput.focus();
+                return;
+            }
 
             if (!validatePhoneNumber(phoneNumber)) {
                 alert('Please enter a valid 10-digit phone number');
@@ -1392,15 +1535,21 @@
                 // It's the dummy number, bypass OTP
                 console.log('Dummy number entered, bypassing OTP.');
                 recordedId = phoneNumber;
+                // Store the name for dummy number users too
+                sessionStorage.setItem('tempUserName', userName);
                 hidePhoneLoginModal();
                 loadWheelData();
             } else {
-                // It's a regular number, send OTP
-                sendOtp(phoneNumber);
+                // Check if user exists first, then either send OTP or show existing result
+                sendOtp(phoneNumber, userName);
             }
         });
 
         // Clear error message on input
+        document.getElementById('nameInput').addEventListener('input', function() {
+            document.getElementById('phoneError').textContent = '';
+        });
+        
         document.getElementById('phoneInput').addEventListener('input', function() {
             document.getElementById('phoneError').textContent = '';
         });
@@ -1446,6 +1595,10 @@
                 // No recorded ID, show phone login modal
                 showPhoneLoginModal();
             }
+            
+            // Debug: Log current session storage
+            console.log('Current sessionStorage tempUserName:', sessionStorage.getItem('tempUserName'));
+            console.log('Current recordedId:', recordedId);
             
             // Generate segment inputs after wheel data is loaded
             setTimeout(() => {

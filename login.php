@@ -195,12 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </form>
                 
-                <div class="mt-6 pt-6 border-t border-gray-200">
-                    <div class="text-center text-sm text-gray-600">
-                        <p>Use the credentials you created during setup.</p>
-                        <p class="font-mono text-xs mt-1">If you forgot them, you can re-run <a href="setup.php" class="text-blue-600 hover:text-blue-800">setup.php</a></p>
-                    </div>
-                </div>
+               
             </div>
             
             <!-- Back to Wheel -->

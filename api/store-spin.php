@@ -26,6 +26,7 @@ if (!$input || !isset($input['recordedId']) || !isset($input['result'])) {
 
 $recordedId = trim($input['recordedId']);
 $result = trim($input['result']);
+$userName = isset($input['userName']) ? trim($input['userName']) : '';
 $timestamp = isset($input['timestamp']) ? (int)$input['timestamp'] : time() * 1000;
 $ipAddress = getClientIP();
 
@@ -61,11 +62,11 @@ try {
     
     // Insert spin record
     $insertStmt = $pdo->prepare("
-        INSERT INTO spins (recorded_id, result, timestamp, ip_address) 
-        VALUES (?, ?, ?, ?)
+        INSERT INTO spins (recorded_id, fullname, result, timestamp, ip_address) 
+        VALUES (?, ?, ?, ?, ?)
     ");
     
-    $insertStmt->execute([$recordedId, $result, $timestamp, $ipAddress]);
+    $insertStmt->execute([$recordedId, $userName, $result, $timestamp, $ipAddress]);
     $spinId = $pdo->lastInsertId();
 
     // Zoho Integration

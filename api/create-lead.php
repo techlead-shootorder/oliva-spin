@@ -28,12 +28,16 @@ if (!$input || !isset($input['mobile']) || !isset($input['couponCode'])) {
 
 $mobile = trim($input['mobile']);
 $couponCode = trim($input['couponCode']);
+$userName = isset($input['user_name']) ? trim($input['user_name']) : '';
 $prize = isset($input['prize']) ? trim($input['prize']) : '';
 $utmSource = isset($input['utm_source']) ? trim($input['utm_source']) : '';
 $utmMedium = isset($input['utm_medium']) ? trim($input['utm_medium']) : '';
 $utmCampaign = isset($input['utm_campaign']) ? trim($input['utm_campaign']) : '';
 $utmTerm = isset($input['utm_term']) ? trim($input['utm_term']) : '';
 $utmContent = isset($input['utm_content']) ? trim($input['utm_content']) : '';
+$browser = isset($input['browser']) ? trim($input['browser']) : '';
+$os = isset($input['os']) ? trim($input['os']) : '';
+$prevUrl = isset($input['prev_url']) ? trim($input['prev_url']) : '';
 
 if (empty($mobile) || empty($couponCode)) {
     http_response_code(400);
@@ -237,16 +241,33 @@ try {
     $leadData = [
         'Mobile' => $mobile,
         'Phone' => $mobile,
-        'Lead_Source' => 'Spin Wheel Campaign',
-        'Description' => 'Lead generated from Oliva Spin Wheel. Prize won: ' . $prize . '. Coupon Code: ' . $couponCode
+        'Lead_Source' => $utmSource ?: 'Oliva Spin Wheel',
+        'Description' => 'Lead generated from Oliva Spin Wheel. Prize won: ' . $prize . '. Coupon Code: ' . $couponCode,
+        'Language' => 'English'
     ];
     
+    // Set lead name properly
+    if (!empty($userName)) {
+        $leadData['Lead_Name'] = $userName;
+        $leadData['First_Name'] = $userName;
+        $leadData['Last_Name'] = '';
+    } else {
+        $leadData['Lead_Name'] = 'Guest User';
+        $leadData['First_Name'] = 'Guest';
+        $leadData['Last_Name'] = '';
+    }
+    
     // Add UTM parameters if available
-    if (!empty($utmSource)) $leadData['UTM_Source'] = $utmSource;
-    if (!empty($utmMedium)) $leadData['UTM_Medium'] = $utmMedium;
-    if (!empty($utmCampaign)) $leadData['UTM_Campaign'] = $utmCampaign;
-    if (!empty($utmTerm)) $leadData['UTM_Term'] = $utmTerm;
-    if (!empty($utmContent)) $leadData['UTM_Content'] = $utmContent;
+    if (!empty($utmSource)) $leadData['utm_source'] = $utmSource;
+    if (!empty($utmMedium)) $leadData['utm_medium'] = $utmMedium;
+    if (!empty($utmCampaign)) $leadData['utm_campaign'] = $utmCampaign;
+    if (!empty($utmTerm)) $leadData['utm_term'] = $utmTerm;
+    if (!empty($utmContent)) $leadData['utm_content'] = $utmContent;
+    
+    // Add browser and device info
+    if (!empty($browser)) $leadData['Browser'] = $browser;
+    if (!empty($os)) $leadData['OS'] = $os;
+    if (!empty($prevUrl)) $leadData['prev_url'] = $prevUrl;
     
     // Add custom fields for spin wheel data
     $leadData['Spin_Wheel_Prize'] = $prize;
@@ -266,9 +287,7 @@ try {
             'result' => $result
         ]);
     } else {
-        // Create new lead - need Last_Name for creation
-        $leadData['Last_Name'] = 'Spin Wheel Lead';
-        $leadData['First_Name'] = 'Festival of Youth';
+        // Create new lead - First_Name and Last_Name already set above
         
         $result = createLeadInZoho($accessToken, $leadData, $zohoConfig['base_url']);
         

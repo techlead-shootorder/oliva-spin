@@ -8,6 +8,7 @@ if ($action == 'ajax_contact_form_mobile_otp') {
     require_once 'config.php'; // Include database configuration and connection
 
     $mobile = $_POST['mobile_number'];
+    $userName = isset($_POST['user_name']) ? $_POST['user_name'] : '';
 
     // Check if the phone number already exists
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_spins WHERE recorded_id = ?");
@@ -15,11 +16,19 @@ if ($action == 'ajax_contact_form_mobile_otp') {
     $userExists = $stmt->fetchColumn();
 
     if ($userExists > 0) {
-        // User exists, send error message
+        // User exists, get their previous result and coupon code
+        $stmt = $pdo->prepare("SELECT result, coupon_code FROM spins WHERE recorded_id = ? ORDER BY timestamp DESC LIMIT 1");
+        $stmt->execute([$mobile]);
+        $previousData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
         header('Content-Type: application/json');
         echo json_encode([
-            'type' => 'error',
-            'message' => 'You have already participated in the Festival of Youth'
+            'type' => 'existing_user',
+            'message' => 'You have already participated',
+            'previous_result' => $previousData['result'] ?? 'Unknown',
+            'previous_coupon_code' => $previousData['coupon_code'] ?? 'N/A',
+            'recorded_id' => $mobile,
+            'user_name' => $userName
         ]);
         die;
     }
