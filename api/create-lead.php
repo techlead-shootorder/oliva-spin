@@ -293,7 +293,7 @@ try {
     if (!empty($utmContent)) $leadData['utm_content'] = $utmContent;
     
     // Add mandatory fields: Sub_Source and City
-    $leadData['Sub_Source'] = $subSource; // Default: 'Email'
+    $leadData['sub_source'] = $subSource; // Default: 'Email'
     if (!empty($city)) $leadData['City'] = $city;
     
     // Add browser and device info
