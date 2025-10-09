@@ -19,6 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Get JSON input
 $input = json_decode(file_get_contents('php://input'), true);
 
+// Debug: Log the input to see what we're receiving
+error_log('Create Lead Input: ' . json_encode($input));
+
 // Validate input
 if (!$input || !isset($input['mobile']) || !isset($input['couponCode'])) {
     http_response_code(400);
@@ -28,13 +31,22 @@ if (!$input || !isset($input['mobile']) || !isset($input['couponCode'])) {
 
 $mobile = trim($input['mobile']);
 $couponCode = trim($input['couponCode']);
-$userName = isset($input['user_name']) ? trim($input['user_name']) : '';
+$userName = isset($input['user_name']) ? trim($input['user_name']) : 
+           (isset($input['userName']) ? trim($input['userName']) : 
+           (isset($input['name']) ? trim($input['name']) : 
+           (isset($input['fullname']) ? trim($input['fullname']) : 
+           (isset($input['full_name']) ? trim($input['full_name']) : ''))));
+
+// Debug: Log the extracted userName
+error_log('Extracted userName: ' . var_export($userName, true));
 $prize = isset($input['prize']) ? trim($input['prize']) : '';
 $utmSource = isset($input['utm_source']) ? trim($input['utm_source']) : '';
 $utmMedium = isset($input['utm_medium']) ? trim($input['utm_medium']) : '';
 $utmCampaign = isset($input['utm_campaign']) ? trim($input['utm_campaign']) : '';
 $utmTerm = isset($input['utm_term']) ? trim($input['utm_term']) : '';
 $utmContent = isset($input['utm_content']) ? trim($input['utm_content']) : '';
+$subSource = isset($input['sub_source']) ? trim($input['sub_source']) : 'Email';
+$city = isset($input['city']) ? trim($input['city']) : '';
 $browser = isset($input['browser']) ? trim($input['browser']) : '';
 $os = isset($input['os']) ? trim($input['os']) : '';
 $prevUrl = isset($input['prev_url']) ? trim($input['prev_url']) : '';
@@ -247,15 +259,31 @@ try {
     ];
     
     // Set lead name properly
-    if (!empty($userName)) {
+    if (!empty($userName) && strtolower($userName) !== 'guest' && strlen(trim($userName)) > 1) {
+        // Parse the full name into first and last name
+        $nameParts = explode(' ', trim($userName), 2);
+        $firstName = $nameParts[0];
+        $lastName = isset($nameParts[1]) && !empty($nameParts[1]) ? $nameParts[1] : 'User';
+        
         $leadData['Lead_Name'] = $userName;
-        $leadData['First_Name'] = $userName;
-        $leadData['Last_Name'] = '';
+        $leadData['First_Name'] = $firstName;
+        $leadData['Last_Name'] = $lastName;
     } else {
         $leadData['Lead_Name'] = 'Guest User';
         $leadData['First_Name'] = 'Guest';
-        $leadData['Last_Name'] = '';
+        $leadData['Last_Name'] = 'User';
     }
+    
+    // Final safeguard: Ensure Last_Name is never empty
+    if (empty($leadData['Last_Name']) || trim($leadData['Last_Name']) === '') {
+        $leadData['Last_Name'] = 'User';
+    }
+    
+    // Debug: Log the name data being sent to Zoho
+    error_log('Name data being sent to Zoho CRM:');
+    error_log('Lead_Name: ' . $leadData['Lead_Name']);
+    error_log('First_Name: ' . $leadData['First_Name']);
+    error_log('Last_Name: ' . $leadData['Last_Name']);
     
     // Add UTM parameters if available
     if (!empty($utmSource)) $leadData['utm_source'] = $utmSource;
@@ -263,6 +291,10 @@ try {
     if (!empty($utmCampaign)) $leadData['utm_campaign'] = $utmCampaign;
     if (!empty($utmTerm)) $leadData['utm_term'] = $utmTerm;
     if (!empty($utmContent)) $leadData['utm_content'] = $utmContent;
+    
+    // Add mandatory fields: Sub_Source and City
+    $leadData['Sub_Source'] = $subSource; // Default: 'Email'
+    if (!empty($city)) $leadData['City'] = $city;
     
     // Add browser and device info
     if (!empty($browser)) $leadData['Browser'] = $browser;

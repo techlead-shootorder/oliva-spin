@@ -494,7 +494,9 @@
                 utm_medium: getUrlParameter('utm_medium') || '',
                 utm_campaign: getUrlParameter('utm_campaign') || '',
                 utm_term: getUrlParameter('utm_term') || '',
-                utm_content: getUrlParameter('utm_content') || ''
+                utm_content: getUrlParameter('utm_content') || '',
+                sub_source: getUrlParameter('Sub_Source') || 'Email',
+                city: getUrlParameter('UTM_City') || ''
             };
         }
         
@@ -1035,6 +1037,8 @@
                         utm_campaign: utmParameters.utm_campaign,
                         utm_term: utmParameters.utm_term,
                         utm_content: utmParameters.utm_content,
+                        sub_source: utmParameters.sub_source,
+                        city: utmParameters.city,
                         browser: browserInfo.browser,
                         os: browserInfo.os,
                         prev_url: browserInfo.prev_url
@@ -1492,9 +1496,10 @@
                     const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
                     recordedId = cleanPhoneNumber;
                     sessionStorage.removeItem('tempPhoneNumber');
-                    sessionStorage.removeItem('tempUserName');
+                    // Keep tempUserName in sessionStorage for later use when spinning
                     
                     console.log('Phone number verified and set as recordedId:', cleanPhoneNumber);
+                    console.log('Keeping userName in sessionStorage:', sessionStorage.getItem('tempUserName'));
                     
                     hideOtpModal();
                     loadWheelData();

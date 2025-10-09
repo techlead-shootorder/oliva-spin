@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host = 'localhost';
+$host = 'srv1870.hstgr.io';
 $dbname = 'u955765309_olivaspin';
-$username = 'root';
-$password = '';
+$username = 'u955765309_faraz';
+$password = '6YTK15@lB';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
