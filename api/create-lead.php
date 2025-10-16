@@ -39,13 +39,17 @@ $userName = isset($input['user_name']) ? trim($input['user_name']) :
 
 // Debug: Log the extracted userName
 error_log('Extracted userName: ' . var_export($userName, true));
+
+// Debug: Log the new UTM fields
+error_log('Sub_Source captured: ' . var_export($subSource, true));
+error_log('City captured: ' . var_export($city, true));
 $prize = isset($input['prize']) ? trim($input['prize']) : '';
 $utmSource = isset($input['utm_source']) ? trim($input['utm_source']) : '';
 $utmMedium = isset($input['utm_medium']) ? trim($input['utm_medium']) : '';
 $utmCampaign = isset($input['utm_campaign']) ? trim($input['utm_campaign']) : '';
 $utmTerm = isset($input['utm_term']) ? trim($input['utm_term']) : '';
 $utmContent = isset($input['utm_content']) ? trim($input['utm_content']) : '';
-$subSource = isset($input['sub_source']) ? trim($input['sub_source']) : 'Email';
+$subSource = 'Email';
 $city = isset($input['city']) ? trim($input['city']) : '';
 $browser = isset($input['browser']) ? trim($input['browser']) : '';
 $os = isset($input['os']) ? trim($input['os']) : '';
@@ -246,8 +250,8 @@ try {
     // Get access token
     $accessToken = getZohoAccessToken($zohoConfig);
     
-    // Search for existing lead
-    $existingLead = searchLeadByMobile($accessToken, $mobile, $zohoConfig['base_url']);
+    // Skip searching for existing lead - always create new lead
+    $existingLead = null;
     
     // Prepare lead data
     $leadData = [
@@ -293,8 +297,16 @@ try {
     if (!empty($utmContent)) $leadData['utm_content'] = $utmContent;
     
     // Add mandatory fields: Sub_Source and City
-    $leadData['sub_source'] = $subSource; // Default: 'Email'
+    $leadData['Sub_Source'] = $subSource; // Default: 'Email'
     if (!empty($city)) $leadData['City'] = $city;
+    
+    // Debug: Log what we're sending to Zoho
+    error_log('Sub_Source being sent to Zoho: ' . $leadData['Sub_Source']);
+    if (isset($leadData['City'])) {
+        error_log('City being sent to Zoho: ' . $leadData['City']);
+    } else {
+        error_log('City field not being sent to Zoho (empty or not provided)');
+    }
     
     // Add browser and device info
     if (!empty($browser)) $leadData['Browser'] = $browser;
@@ -306,30 +318,21 @@ try {
     $leadData['Spin_Wheel_Coupon'] = $couponCode;
     $leadData['Spin_Wheel_Date'] = date('Y-m-d H:i:s');
     
-    if ($existingLead) {
-        // Update existing lead
-        $leadData['id'] = $existingLead['id'];
-        $result = updateLeadInZoho($accessToken, $existingLead['id'], $leadData, $zohoConfig['base_url']);
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Lead updated successfully',
-            'action' => 'updated',
-            'lead_id' => $existingLead['id'],
-            'result' => $result
-        ]);
-    } else {
-        // Create new lead - First_Name and Last_Name already set above
-        
-        $result = createLeadInZoho($accessToken, $leadData, $zohoConfig['base_url']);
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Lead created successfully',
-            'action' => 'created',
-            'result' => $result
-        ]);
-    }
+    // Always create new lead - don't update existing ones
+    $result = createLeadInZoho($accessToken, $leadData, $zohoConfig['base_url']);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Lead created successfully',
+        'action' => 'created',
+        'result' => $result,
+        'debug' => [
+            'sub_source_captured' => $subSource,
+            'city_captured' => $city,
+            'sub_source_sent_to_zoho' => $leadData['Sub_Source'],
+            'city_sent_to_zoho' => isset($leadData['City']) ? $leadData['City'] : 'not_sent'
+        ]
+    ]);
     
 } catch (Exception $e) {
     error_log('Zoho Lead Creation Error: ' . $e->getMessage());
