@@ -21,6 +21,8 @@ if (isset($_GET['logout'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Oasis Spin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- TinyMCE Rich Text Editor -->
+    <script src="https://cdn.tiny.cloud/1/fos1xp40gdzs1h6i9czdoxpl63kes15yfev89m18apu8zy0z/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
@@ -407,15 +409,14 @@ if (isset($_GET['logout'])) {
             </div>
             <div class="modal-body">
                 <form id="couponForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Discount Text</label>
-                            <input type="text" id="discountText" class="input-field" placeholder="e.g., 10K Discount" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
-                            <input type="number" id="discountValue" class="input-field" placeholder="e.g., 10001" required>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Text (Rich Text)</label>
+                        <textarea id="discountText" rows="4" placeholder="e.g., 10K Discount"></textarea>
+                        <small class="text-gray-500 text-xs mt-1">Use the editor to format text, add bold, italic, colors, etc.</small>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
+                        <input type="number" id="discountValue" class="input-field" placeholder="e.g., 10001" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Base Discount Code</label>
@@ -467,15 +468,14 @@ if (isset($_GET['logout'])) {
             <div class="modal-body">
                 <form id="editCouponForm" class="space-y-4">
                     <input type="hidden" id="editCouponId">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Discount Text</label>
-                            <input type="text" id="editDiscountText" class="input-field" placeholder="e.g., 10K Discount" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
-                            <input type="number" id="editDiscountValue" class="input-field" placeholder="e.g., 10001" required>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Text (Rich Text)</label>
+                        <textarea id="editDiscountText" rows="4" placeholder="e.g., 10K Discount"></textarea>
+                        <small class="text-gray-500 text-xs mt-1">Use the editor to format text, add bold, italic, colors, etc.</small>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
+                        <input type="number" id="editDiscountValue" class="input-field" placeholder="e.g., 10001" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Base Discount Code</label>
@@ -778,96 +778,8 @@ if (isset($_GET['logout'])) {
                 console.error('Error loading settings:', error);
             }
         }
-        
-        // Add coupon
-        document.getElementById('couponForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                action: 'add_coupon',
-                discount_text: document.getElementById('discountText').value,
-                discount_value: parseInt(document.getElementById('discountValue').value),
-                coupon_code: document.getElementById('couponCode').value,
-                week1_probability: parseFloat(document.getElementById('week1Probability').value),
-                week2_probability: parseFloat(document.getElementById('week2Probability').value),
-                week3_probability: parseFloat(document.getElementById('week3Probability').value),
-                week4_probability: parseFloat(document.getElementById('week4Probability').value),
-                color: document.getElementById('couponColor').value
-            };
-            
-            try {
-                const response = await fetch('api/admin-data.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Clear form
-                    document.getElementById('couponForm').reset();
-                    document.getElementById('couponColor').value = '#667eea';
-                    
-                    // Reload coupons
-                    loadCoupons();
-                    
-                    alert('Coupon added successfully!');
-                } else {
-                    alert('Error adding coupon: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Error adding coupon:', error);
-                alert('Error adding coupon. Please try again.');
-            }
-        });
-        
-        // Edit coupon
-        document.getElementById('editCouponForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                action: 'update_coupon',
-                id: parseInt(document.getElementById('editCouponId').value),
-                discount_text: document.getElementById('editDiscountText').value,
-                discount_value: parseInt(document.getElementById('editDiscountValue').value),
-                coupon_code: document.getElementById('editCouponCode').value,
-                week1_probability: parseFloat(document.getElementById('editWeek1Probability').value),
-                week2_probability: parseFloat(document.getElementById('editWeek2Probability').value),
-                week3_probability: parseFloat(document.getElementById('editWeek3Probability').value),
-                week4_probability: parseFloat(document.getElementById('editWeek4Probability').value),
-                color: document.getElementById('editCouponColor').value
-            };
-            
-            try {
-                const response = await fetch('api/admin-data.php', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Reload coupons
-                    loadCoupons();
-                    
-                    // Close modal
-                    closeEditCouponModal();
-                    
-                    alert('Coupon updated successfully!');
-                } else {
-                    alert('Error updating coupon: ' + data.error);
-                }
-            } catch (error) {
-                console.error('Error updating coupon:', error);
-                alert('Error updating coupon. Please try again.');
-            }
-        });
+
+        // Form handlers will be defined below with TinyMCE integration
         
         // Delete coupon
         async function deleteCoupon(id) {
@@ -1168,6 +1080,229 @@ if (isset($_GET['logout'])) {
             link.click();
             document.body.removeChild(link);
         }
+
+        // Initialize TinyMCE for a specific textarea
+        function initTinyMCE(selector) {
+            const elementId = selector.replace('#', '');
+
+            // Remove existing editor if present
+            if (tinymce.get(elementId)) {
+                tinymce.get(elementId).remove();
+            }
+
+            return tinymce.init({
+                selector: selector,
+                height: 250,
+                menubar: false,
+                plugins: [
+                    'lists', 'link', 'code', 'textcolor', 'colorpicker'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic underline strikethrough | fontsize | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | removeformat | code',
+                fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt',
+                color_map: [
+                    'FFFFFF', 'White',
+                    'FFFF00', 'Yellow',
+                    'FFA500', 'Orange',
+                    'FF0000', 'Red',
+                    'FF1493', 'Pink',
+                    '800080', 'Purple',
+                    '0000FF', 'Blue',
+                    '00FFFF', 'Cyan',
+                    '00FF00', 'Lime',
+                    '008000', 'Green',
+                    '000000', 'Black',
+                    '808080', 'Gray'
+                ],
+                content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; color: #333; background: #fff; }',
+                inline_styles: true,
+                forced_root_block: 'br',
+                force_br_newlines: true,
+                force_p_newlines: false,
+                entity_encoding: 'raw',
+                convert_newlines_to_brs: true,
+                remove_linebreaks: false,
+                setup: function(editor) {
+                    editor.on('init', function() {
+                        console.log('✓ TinyMCE initialized for', editor.id);
+                        console.log('📝 Press Enter for line breaks, they will appear on the wheel');
+                        editor.initialized = true; // Mark as initialized
+                    });
+                }
+            });
+        }
+
+        // Override modal opening functions to initialize TinyMCE
+        const originalOpenAddCouponModal = openAddCouponModal;
+        openAddCouponModal = function() {
+            originalOpenAddCouponModal();
+            setTimeout(() => initTinyMCE('#discountText'), 150);
+        };
+
+        const originalOpenEditCouponModal = openEditCouponModal;
+        openEditCouponModal = function() {
+            originalOpenEditCouponModal();
+            setTimeout(() => initTinyMCE('#editDiscountText'), 150);
+        };
+
+        // Override modal closing functions to cleanup TinyMCE
+        const originalCloseAddCouponModal = closeAddCouponModal;
+        closeAddCouponModal = function() {
+            if (tinymce.get('discountText')) {
+                tinymce.get('discountText').remove();
+            }
+            originalCloseAddCouponModal();
+        };
+
+        const originalCloseEditCouponModal = closeEditCouponModal;
+        closeEditCouponModal = function() {
+            if (tinymce.get('editDiscountText')) {
+                tinymce.get('editDiscountText').remove();
+            }
+            originalCloseEditCouponModal();
+        };
+
+        // Update form submission to get TinyMCE content
+        const originalCouponFormHandler = document.getElementById('couponForm').onsubmit;
+        document.getElementById('couponForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get content from TinyMCE
+            const discountTextContent = tinymce.get('discountText') ? tinymce.get('discountText').getContent() : document.getElementById('discountText').value;
+
+            console.log('💾 Saving discount text (HTML):', discountTextContent);
+
+            const formData = {
+                action: 'add_coupon',
+                discount_text: discountTextContent,
+                discount_value: parseInt(document.getElementById('discountValue').value),
+                coupon_code: document.getElementById('couponCode').value,
+                week1_probability: parseFloat(document.getElementById('week1Probability').value),
+                week2_probability: parseFloat(document.getElementById('week2Probability').value),
+                week3_probability: parseFloat(document.getElementById('week3Probability').value),
+                week4_probability: parseFloat(document.getElementById('week4Probability').value),
+                color: document.getElementById('couponColor').value
+            };
+
+            try {
+                const response = await fetch('api/admin-data.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear form and TinyMCE
+                    if (tinymce.get('discountText')) {
+                        tinymce.get('discountText').setContent('');
+                    }
+                    document.getElementById('couponForm').reset();
+                    document.getElementById('couponColor').value = '#667eea';
+
+                    // Reload coupons
+                    loadCoupons();
+                    closeAddCouponModal();
+
+                    alert('Discount added successfully!');
+                } else {
+                    alert('Error adding discount: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding discount:', error);
+                alert('Error adding discount. Please try again.');
+            }
+        });
+
+        // Update edit form submission
+        document.getElementById('editCouponForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get content from TinyMCE
+            const discountTextContent = tinymce.get('editDiscountText') ? tinymce.get('editDiscountText').getContent() : document.getElementById('editDiscountText').value;
+
+            console.log('💾 Updating discount text (HTML):', discountTextContent);
+
+            const formData = {
+                action: 'update_coupon',
+                id: parseInt(document.getElementById('editCouponId').value),
+                discount_text: discountTextContent,
+                discount_value: parseInt(document.getElementById('editDiscountValue').value),
+                coupon_code: document.getElementById('editCouponCode').value,
+                week1_probability: parseFloat(document.getElementById('editWeek1Probability').value),
+                week2_probability: parseFloat(document.getElementById('editWeek2Probability').value),
+                week3_probability: parseFloat(document.getElementById('editWeek3Probability').value),
+                week4_probability: parseFloat(document.getElementById('editWeek4Probability').value),
+                color: document.getElementById('editCouponColor').value
+            };
+
+            try {
+                const response = await fetch('api/admin-data.php', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload coupons
+                    loadCoupons();
+
+                    // Close modal
+                    closeEditCouponModal();
+
+                    alert('Discount updated successfully!');
+                } else {
+                    alert('Error updating discount: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating discount:', error);
+                alert('Error updating discount. Please try again.');
+            }
+        });
+
+        // Update editCoupon function to set TinyMCE content
+        const originalEditCoupon = editCoupon;
+        editCoupon = function(id) {
+            const coupon = coupons.find(c => c.id == id);
+            if (!coupon) {
+                alert('Coupon not found!');
+                return;
+            }
+
+            // Populate edit form with current values
+            document.getElementById('editCouponId').value = coupon.id;
+            document.getElementById('editDiscountValue').value = coupon.discount_value;
+            document.getElementById('editCouponCode').value = coupon.coupon_code;
+            document.getElementById('editWeek1Probability').value = coupon.week1_probability;
+            document.getElementById('editWeek2Probability').value = coupon.week2_probability;
+            document.getElementById('editWeek3Probability').value = coupon.week3_probability;
+            document.getElementById('editWeek4Probability').value = coupon.week4_probability;
+            document.getElementById('editCouponColor').value = coupon.color;
+
+            // Set textarea value first (fallback)
+            document.getElementById('editDiscountText').value = coupon.discount_text || '';
+
+            openEditCouponModal();
+
+            // Wait for TinyMCE to initialize, then set content
+            const waitForTinyMCE = setInterval(() => {
+                const editor = tinymce.get('editDiscountText');
+                if (editor && editor.initialized) {
+                    console.log('✓ Setting TinyMCE content:', coupon.discount_text);
+                    editor.setContent(coupon.discount_text || '');
+                    clearInterval(waitForTinyMCE);
+                }
+            }, 100);
+
+            // Timeout after 3 seconds
+            setTimeout(() => clearInterval(waitForTinyMCE), 3000);
+        };
 
         // Initialize dashboard on page load
         loadDashboard();

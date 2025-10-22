@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -47,6 +47,55 @@
                 box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3), 0 0 0 4px rgba(102, 126, 234, 0.2), 0 0 0 6px rgba(102, 126, 234, 0.1);
                 border: 2px solid rgba(102, 126, 234, 0.4);
                 will-change: transform;
+                background-image: url('images/new/circular background.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+
+            /* Wheel text styling - support rich HTML */
+            .wheel p {
+                margin: 0;
+                padding: 0;
+                display: inline;
+            }
+
+            .wheel br {
+                display: block;
+                content: "";
+            }
+
+            .wheel strong, .wheel b {
+                font-weight: 900 !important;
+            }
+
+            .wheel span {
+                display: inline;
+            }
+
+            .wheel div {
+                white-space: pre-line;
+                text-align: center !important;
+            }
+
+            .wheel span {
+                text-align: center !important;
+            }
+
+            /* Support TinyMCE alignment styles */
+            .wheel div[style*="text-align: left"],
+            .wheel span[style*="text-align: left"] {
+                text-align: left !important;
+            }
+
+            .wheel div[style*="text-align: center"],
+            .wheel span[style*="text-align: center"] {
+                text-align: center !important;
+            }
+
+            .wheel div[style*="text-align: right"],
+            .wheel span[style*="text-align: right"] {
+                text-align: right !important;
             }
             
             .wheel-segment {
@@ -96,28 +145,32 @@
             
             .wheel-pointer {
                 position: absolute;
-                top: -12px;
+                top: -18px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 0;
-                height: 0;
-                border-left: 16px solid transparent;
-                border-right: 16px solid transparent;
-                border-top: 32px solid #667eea;
+                width: 60px;
+                height: 60px;
+                background-image: url('images/new/pointer 2.png');
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
                 z-index: 20;
                 filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.4));
             }
-            
-            .wheel-pointer::after {
-                content: '';
+
+            .wheel-pointer-back {
                 position: absolute;
-                top: -28px;
-                left: -12px;
-                width: 0;
-                height: 0;
-                border-left: 12px solid transparent;
-                border-right: 12px solid transparent;
-                border-top: 24px solid #ffffff;
+                top: -25px;
+                left: 50%;
+                transform: translateX(-50%) rotate(180deg);
+                width: 60px;
+                height: 60px;
+                background-image: url('images/new/pointer 1.png');
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+                z-index: 0;
+                filter: drop-shadow(0 6px 12px rgba(102, 126, 234, 0.4));
             }
             
             .spin-button {
@@ -129,6 +182,10 @@
                 height: 80px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background-image: url('images/new/FestivalOfYouth.png');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
                 border: 6px solid rgba(255, 255, 255, 0.9);
                 z-index: 15;
                 box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4), 0 0 0 2px rgba(102, 126, 234, 0.2);
@@ -213,7 +270,7 @@
             }
             
             .result-card {
-                background: #01a4a6;
+                background:rgb(255, 255, 255);
                 border-radius: 20px;
                 padding: 24px;
                 color: white;
@@ -223,17 +280,115 @@
                 backdrop-filter: blur(15px);
                 position: relative;
                 overflow: hidden;
+                z-index: 60; /* ensure result sits above wheel */
+                transition: transform 700ms cubic-bezier(.16,.84,.24,1), opacity 700ms ease, filter 700ms ease;
+                transform-origin: 50% 10%;
+                will-change: transform, opacity, filter;
             }
-            
-            .result-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%);
+
+            .result-small { font-size: 12px; color: rgba(0,0,0,0.55); text-transform: uppercase; letter-spacing: 0.04em; }
+            .result-title { font-size: 24px; color: #01a4a6; }
+            .result-sub { font-size: 14px; color: #0b3b3b; }
+            .result-price { font-size: 28px; color: #072A2A; font-weight: 800; }
+
+            /* Hidden state (off-screen / blurred) */
+            .result-hidden {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96) rotateX(6deg);
+                filter: blur(6px) saturate(.9);
                 pointer-events: none;
+                display: none;
+            }
+
+            /* Visible state (final) */
+            .result-visible {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0);
+                filter: blur(0) saturate(1);
+                pointer-events: auto;
+            }
+
+            /* Pop-in micro-bounce for a satisfying reveal */
+            .result-pop {
+                animation: popIn 650ms cubic-bezier(.2,.9,.3,1);
+            }
+
+            @keyframes popIn {
+                0% { transform: translateY(30px) scale(.96) rotateX(8deg); opacity: 0; }
+                60% { transform: translateY(-8px) scale(1.02) rotateX(0); opacity: 1; }
+                100% { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+            }
+
+            /* Overlay behind the result to focus attention */
+            #resultOverlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.45);
+                backdrop-filter: blur(2px) saturate(.9);
+                opacity: 0;
+                transition: opacity 400ms ease;
+                z-index: 40;
+                pointer-events: none;
+            }
+
+            #resultOverlay.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Rich text content styling - preserve TinyMCE formatting */
+            #resultText {
+                line-height: 1.5;
+                font-size: inherit;
+              
+            }
+
+            #resultText strong, #resultText b {
+                font-weight: 700 !important;
+            }
+
+            #resultText em, #resultText i {
+                font-style: italic !important;
+            }
+
+            #resultText u {
+                text-decoration: underline !important;
+            }
+
+            #resultText s, #resultText strike {
+                text-decoration: line-through !important;
+            }
+
+            #resultText ul, #resultText ol {
+                text-align: left;
+                margin: 10px auto;
+                padding-left: 20px;
+            }
+
+            #resultText li {
+                margin: 3px 0;
+            }
+
+            #resultText p {
+                margin: 5px 0;
+            }
+
+            #resultText h1 {
+                font-size: 2em;
+                font-weight: bold;
+                margin: 10px 0;
+            }
+
+            #resultText h2 {
+                font-size: 1.5em;
+                font-weight: bold;
+                margin: 8px 0;
+            }
+
+            #resultText h3 {
+                font-size: 1.17em;
+                font-weight: bold;
+                margin: 6px 0;
             }
             
             .option-card {
@@ -305,10 +460,13 @@
                 box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
                 will-change: transform;
             }
+            .gdrhide{
+                display: none;
+            }
         </style>
     </head>
     <!-- <body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" > -->
-    <body class="min-h-screen object-cover" style="background: url('images/BG.png')" >
+    <body class="min-h-screen object-cover" style="background: url('images/new/Bacground.png'); background-size: cover; background-position: center; background-repeat: no-repeat;" >
 
         <div class="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
             
@@ -410,13 +568,13 @@
 
             <!-- Header -->
             <div class="text-center mb-2">
-                <img src="images/oliva-logo.png" 
+                <img src="images/new/Logo.png" 
                     alt="Oasis India Logo" 
                     class="mx-auto h-12 sm:h-16 md:h-20 w-auto mb-10">
 
-                    <img src="images/Text.png" 
+                    <img src="images/new/Visible.png" 
                     alt="Oasis India Logo" 
-                    class="mx-auto mb-4 h-12 sm:h-16 md:h-40 w-auto">
+                    class="mx-auto mb-4">
                 <!-- <h1 id="wheelTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                     Oasis Spin Wheel's
                 </h1>
@@ -430,6 +588,7 @@
             <div class="w-full max-w-md mx-auto">
                 <div class="wheel-container floating-animation">
                     <div class="wheel-pointer"></div>
+                    <div class="wheel-pointer-back"></div>
                     <div id="wheel" class="wheel">
                         <!-- Wheel segments will be generated by JavaScript -->
                     </div>
@@ -440,27 +599,42 @@
                     >
                         <span id="spinText"><br>SPIN</span>
                     </button>
-                    <div class="spin-handle"></div>
+                    <!-- <div class="spin-handle"></div> -->
                 </div>
             </div>
-            
+           
             <!-- Result -->
-            <div id="result" class="result-card hidden w-full max-w-sm transform transition-all duration-500 scale-95 opacity-0">
-                <p class="text-sm font-medium text-white/80 mb-2">Registered Phone: <span id="resultRecordedId" class="font-bold"></span></p>
+            <div id="resultOverlay" aria-hidden="true"></div>
+            <div id="result" class="result-hidden w-full max-w-sm">
+            <div class="result-card ">
+                 
+                <p class="text-sm font-medium text-black/80 mb-2">Registered Phone: <span id="resultRecordedId" class="font-bold"></span></p>
                 
-                <h3 class="text-xl  mb-3 relative z-10">Congratulations! <span class="font-bold"> Unlocked:</span></h3>
-                <p class="text-2xl font-bold mb-4 relative z-10" id="resultText"></p>
+                <h3 class="text-xl  mb-3 relative z-10 text-black" >Exciting offer Unlocked!</h3>
+                <div id="resultText" class="text-2xl font-bold mb-4 relative z-10" style="color:#01a4a6"></div>
 
-
-                <div class="mt-4 p-5 bg-white rounded-xl backdrop-blur-sm relative z-10" style="box-shadow: 8px 8px 0px #E89B3B">
-                    <p class="text-sm font-semibold mb-2 text-black">Your Coupon Code:</p>
-                    <p class="text-xl font-mono font-bold tracking-wider" style="color: #01a4a6" id="couponCode"></p>
-                </div>
-                <div class="mt-4 text-xs text-white/90 font-medium space-y-1">
-                    <p>Show the code at the clinic billing counter to avail the offer.</p>
-                </div>
-                <div class="mt-6 w-16 h-1 bg-white/40 rounded-full mx-auto relative z-10"></div>
             </div>
+            <div style="background-color: #374151; margin-top:-25px;" class="rounded-xl backdrop-blur-sm relative z-10"> 
+                <div class="flex items-center justify-between p-8 pb-2">
+                    <!-- Left: image (replace with your preferred asset) -->
+                   
+
+                    <!-- Right: label and coupon code inline, right-aligned -->
+                    <div class="flex-row items-center space-x-3 ml-auto text-right">
+                        <div class="text-sm font-semibold text-white">Your Coupon Code:</div>
+                        <div id="couponCode" class="text-xl font-mono font-bold tracking-wider" style="color: #01a4a6"></div>
+                    </div>
+                </div>
+
+              
+                
+               
+            </div>
+              <div class="mt-4 text-sm text-white/90 font-medium space-y-1 px-4 pb-4 w-[250px] ml-auto text-right mr-4">
+                    <p>Save the code & book your consultation today !</p>
+                </div>
+           
+        </div>
             
             <!-- Spin Status -->
             <div id="spinStatus" class="w-full max-w-sm hidden">
@@ -487,18 +661,20 @@
             
             <!-- Segment Management -->
         
-            
+              <img src="images/new/your journey.png" 
+                    alt="Oasis India Logo" 
+                    class="mx-auto w-auto hide-on-result">
             
 
             <!-- Footer -->
-            <div class="text-center text-xs text-gray-500 mt-8">
+            <div class="text-center text-xs text-white mt-8 hide-on-result">
                 <p>
-                    <a href="https://www.olivaclinic.com/privacy-policy/" target="_blank" class="text-blue-600 hover:underline">Privacy Policy</a> |
-                    <a href="https://www.olivaclinic.com/terms-conditions/" target="_blank" class="text-blue-600 hover:underline">Terms & Conditions</a>
+                    <a href="https://www.olivaclinic.com/privacy-policy/" target="_blank" class="text-white-600 hover:underline">Privacy Policy</a> |
+                    <a href="https://www.olivaclinic.com/terms-conditions/" target="_blank" class="text-white-600 hover:underline">Terms & Conditions</a>
                 </p>
             </div>
         </div>
-
+  <img  src="images/new/doctor.png" alt="Offer" class="object-contain gdrhide" style="width:230px;  object-fit:contain; position:absolute; bottom:-25px; z-index:9999" />
         <script>
             // Get URL parameters
             function getUrlParameter(name) {
@@ -568,13 +744,23 @@
             
             // Get recorded ID from URL or session storage
             let recordedId = getUrlParameter('recordedId');
-            
+
             // Wheel options will be loaded from API
             let wheelOptions = [];
             let canSpin = false; // Default to false, only API can enable
             let isSpinning = false;
             let currentWeek = 1;
             let currentWheelRotation = 0; // Track cumulative wheel rotation
+
+            // Helper function to strip HTML tags for wheel display
+            function stripHtmlTags(html) {
+                if (!html) return '';
+                const tmp = document.createElement('DIV');
+                tmp.innerHTML = html;
+                // Get text content and clean up extra whitespace
+                const text = tmp.textContent || tmp.innerText || '';
+                return text.trim().replace(/\s+/g, ' ');
+            }
             
             // Generate vibrant colors
             function getRandomColor() {
@@ -590,7 +776,7 @@
             function createWheel() {
                 const wheel = document.getElementById('wheel');
                 wheel.innerHTML = '';
-                
+
                 // Create SVG for perfect pie segments - SAME UI as original
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.style.width = '100%';
@@ -599,12 +785,21 @@
                 svg.style.top = '0';
                 svg.style.left = '0';
                 svg.setAttribute('viewBox', '0 0 200 200');
-                
+
+                // Create container for HTML text overlays
+                const textContainer = document.createElement('div');
+                textContainer.style.position = 'absolute';
+                textContainer.style.top = '0';
+                textContainer.style.left = '0';
+                textContainer.style.width = '100%';
+                textContainer.style.height = '100%';
+                textContainer.style.pointerEvents = 'none';
+
                 const centerX = 100;
                 const centerY = 100;
                 const radius = 90;
                 let currentAngle = 0;
-                
+
                 // Calculate equal segment size for visual fairness - SAME as original
                 const segmentAngle = 360 / wheelOptions.length;
                 
@@ -683,67 +878,74 @@
                     path.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))';
                     
                     svg.appendChild(path);
-                    
-                    // Add text label with proper game design - SAME as original
+
+                    // Add HTML text overlay with rich formatting support
                     const textAngle = startAngle + segmentAngle / 2;
-                    const textRadius = radius * 0.65; // Closer to center for better fit
+                    const textRadius = radius * 0.65;
                     const textAngleRad = (textAngle - 90) * Math.PI / 180;
-                    const textX = centerX + textRadius * Math.cos(textAngleRad);
-                    const textY = centerY + textRadius * Math.sin(textAngleRad);
-                    
-                    // Create text with smart line breaking for longer text - SAME as original
-                    const textContent = option.text;
-                    const words = textContent.split(' ');
-                    
-                    if (words.length > 1 && textContent.length > 8) {
-                        // Multi-line text for longer labels - SAME as original
-                        const textGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        textGroup.setAttribute('transform', `rotate(${textAngle}, ${textX}, ${textY})`);
-                        
-                        words.forEach((word, wordIndex) => {
-                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                            line.setAttribute('x', textX);
-                            line.setAttribute('y', textY + (wordIndex - (words.length - 1) / 2) * 10);
-                            line.setAttribute('text-anchor', 'middle');
-                            line.setAttribute('dominant-baseline', 'middle');
-                            line.setAttribute('fill', 'white');
-                            line.setAttribute('font-size', '9');
-                            line.setAttribute('font-weight', '700');
-                            line.setAttribute('font-family', '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif');
-                            line.setAttribute('stroke', 'rgba(0,0,0,0.3)');
-                            line.setAttribute('stroke-width', '0.5');
-                            line.style.pointerEvents = 'none';
-                            line.style.userSelect = 'none';
-                            line.textContent = word;
-                            textGroup.appendChild(line);
-                        });
-                        
-                        svg.appendChild(textGroup);
-                    } else {
-                        // Single line text - SAME as original
-                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        text.setAttribute('x', textX);
-                        text.setAttribute('y', textY);
-                        text.setAttribute('text-anchor', 'middle');
-                        text.setAttribute('dominant-baseline', 'middle');
-                        text.setAttribute('fill', 'white');
-                        text.setAttribute('font-size', textContent.length > 10 ? '8' : '10');
-                        text.setAttribute('font-weight', '700');
-                        text.setAttribute('font-family', '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif');
-                        text.setAttribute('stroke', 'rgba(0,0,0,0.3)');
-                        text.setAttribute('stroke-width', '0.5');
-                        text.setAttribute('transform', `rotate(${textAngle}, ${textX}, ${textY})`);
-                        text.style.pointerEvents = 'none';
-                        text.style.userSelect = 'none';
-                        text.textContent = textContent;
-                        
-                        svg.appendChild(text);
-                    }
-                    
+
+                    // Calculate position in percentage relative to wheel container
+                    const textX = 50 + (textRadius / 2) * Math.cos(textAngleRad);
+                    const textY = 50 + (textRadius / 2) * Math.sin(textAngleRad);
+
+                    // Create HTML div for text with rich formatting
+                    const textDiv = document.createElement('div');
+                    textDiv.style.position = 'absolute';
+                    textDiv.style.left = `${textX}%`;
+                    textDiv.style.top = `${textY}%`;
+                    textDiv.style.transform = `translate(-50%, -50%) rotate(${textAngle}deg)`;
+                    textDiv.style.transformOrigin = 'center center';
+                    textDiv.style.color = 'white';
+                    textDiv.style.fontSize = '8px';
+                    textDiv.style.fontWeight = '700';
+                    textDiv.style.fontFamily = '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                    textDiv.style.textAlign = 'center'; // Default center alignment
+                    textDiv.style.textTransform = 'uppercase'; // All text in CAPITAL LETTERS
+                    textDiv.style.pointerEvents = 'none';
+                    textDiv.style.userSelect = 'none';
+                    textDiv.style.whiteSpace = 'pre-line'; // Preserves line breaks, collapses spaces
+                    textDiv.style.wordBreak = 'keep-all'; // Don't break words
+                    textDiv.style.maxWidth = '120px'; // Increased width for longer text
+                    textDiv.style.maxHeight = '60px';
+                    textDiv.style.lineHeight = '1.0';
+                    textDiv.style.overflow = 'visible';
+                    textDiv.style.display = 'block';
+
+                    // Convert HTML to text that preserves line breaks and alignment
+                    let processedText = option.text;
+
+                    // Debug: log original text
+                    console.log('Original text:', processedText);
+
+                    // Remove any text-align styles that might be in the HTML
+                    processedText = processedText.replace(/style="[^"]*text-align:[^;"]*;?[^"]*"/gi, '');
+                    processedText = processedText.replace(/text-align:\s*(left|right|justify);?/gi, '');
+
+                    // Convert <br> and <br/> and <br /> to actual line breaks
+                    processedText = processedText.replace(/<br\s*\/?>/gi, '\n');
+                    // Convert closing </p> tags to line breaks
+                    processedText = processedText.replace(/<\/p>/gi, '\n');
+                    // Remove opening <p> tags
+                    processedText = processedText.replace(/<p[^>]*>/gi, '');
+                    // Remove div tags but keep content
+                    processedText = processedText.replace(/<\/?div[^>]*>/gi, '');
+                    // Remove extra whitespace at start/end of each line but keep line breaks
+                    processedText = processedText.split('\n').map(line => line.trim()).join('\n');
+                    // Remove leading/trailing newlines
+                    processedText = processedText.trim();
+
+                    // Debug: log processed text
+                    console.log('Processed text:', processedText);
+
+                    textDiv.innerHTML = processedText;
+
+                    textContainer.appendChild(textDiv);
+
                     currentAngle += segmentAngle;
                 });
-                
+
                 wheel.appendChild(svg);
+                wheel.appendChild(textContainer);
             }
             
             // Load wheel data from API
@@ -790,28 +992,16 @@
                             }
                             
                             // Show only the main result card, hide the status card
-                            const resultTextMapping = {
-                                "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
-                                "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
-                                "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
-                                "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
-                                "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
-                            };
-
-                            const resultText = resultTextMapping[data.previousResult] || data.previousResult;
+                            // Use previousResult directly - it contains HTML from TinyMCE editor
+                            const resultText = data.previousResult;
                             
                             // Update and show main result display
                             document.getElementById('resultRecordedId').textContent = recordedId;
-                            document.getElementById('resultText').innerHTML = resultText;
+                            document.getElementById('resultText').innerHTML = renderResultHtml(data.previousResult || resultText);
                             document.getElementById('couponCode').textContent = data.previousCouponCode || 'N/A';
                             
-                            // Show result with animation
-                            const result = document.getElementById('result');
-                            result.classList.remove('hidden');
-                            setTimeout(() => {
-                                result.classList.remove('scale-95', 'opacity-0');
-                                result.classList.add('scale-100', 'opacity-100');
-                            }, 50);
+                            // Show result with improved animation
+                            showResultCard();
 
                         } else if (canSpin) {
                             // User can spin - make sure button is enabled
@@ -872,9 +1062,7 @@
                 const wheel = document.getElementById('wheel');
                 
                 // Hide previous result with animation
-                result.classList.add('hidden');
-                result.classList.remove('scale-100', 'opacity-100');
-                result.classList.add('scale-95', 'opacity-0');
+                hideResultCard();
                 
                 // Update button state
                 spinBtn.disabled = true;
@@ -919,7 +1107,14 @@
                         // --- DYNAMIC ROTATION LOGIC ---
 
                         // 1. Find the index of the winner in the wheelOptions array, which matches the visual layout
-                        const winnerIndex = wheelOptions.findIndex(option => option.text === winner.text);
+                        // First try exact match (for HTML content), then try stripped text match
+                        let winnerIndex = wheelOptions.findIndex(option => option.text === winner.text);
+
+                        // If not found, try comparing stripped HTML (in case API returns different format)
+                        if (winnerIndex === -1) {
+                            const strippedWinnerText = stripHtmlTags(winner.text);
+                            winnerIndex = wheelOptions.findIndex(option => stripHtmlTags(option.text) === strippedWinnerText);
+                        }
 
                         if (winnerIndex === -1) {
                             // This should not happen if data from get-wheel-data.php and spin.php are consistent
@@ -957,19 +1152,16 @@
 
                         // Show result after animation
                         setTimeout(() => {
-                            const resultTextMapping = {
-                                "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
-                                "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
-                                "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
-                                "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
-                                "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
-                            };
+                            // Use winner.text directly - it contains HTML from TinyMCE editor
+                            const resultText = winner.text;
 
-                            const resultText = resultTextMapping[winner.text] || winner.text;
+                            // Debug: Log the result text
+                            console.log('🎉 Winner Result Text (HTML):', resultText);
+                            console.log('🎉 Winner Result Text (Stripped):', stripHtmlTags(resultText));
 
                             // Update result display
                             document.getElementById('resultRecordedId').textContent = recordedId;
-                            document.getElementById('resultText').innerHTML = resultText;
+                            document.getElementById('resultText').innerHTML = renderResultHtml(winner);
                             document.getElementById('couponCode').textContent = winner.code;
                             
                             // Send SMS
@@ -983,12 +1175,8 @@
                             // Clear stored name after use
                             sessionStorage.removeItem('tempUserName');
 
-                            // Show result with animation
-                            result.classList.remove('hidden');
-                            setTimeout(() => {
-                                result.classList.remove('scale-95', 'opacity-0');
-                                result.classList.add('scale-100', 'opacity-100');
-                            }, 50);
+                            // Show result with improved animation
+                            showResultCard();
                             
                             // Disable further spins
                             canSpin = false;
@@ -1158,7 +1346,7 @@
                 if (!canSpin) {
                     spinBtn.disabled = true;
                     spinText.innerHTML = '✓<br>USED';
-                    spinBtn.style.opacity = '0.5';
+                    spinBtn.style.opacity = '1';
                 }
             }
             
@@ -1411,35 +1599,254 @@
                 }
                 
                 // Show the result card with their previous win
-                const resultTextMapping = {
-                    "Vdiscover @499": "Vdiscover 5 Step Analysis & Consultation @ Rs <s>900</s> 499",
-                    "Free Vdiscover": "FREE Vdiscover 5 Step Analysis & Consultation",
-                    "Extra 10% off": "Additional 10% off on bill - Enjoy total discounts up to 40%!",
-                    "Extra 15% off": "Additional 15% off on bill - Enjoy total discounts up to 45%!",
-                    "Extra 20% off": "Additional 20% off on bill - Enjoy total discounts up to 50%!"
-                };
-
-                const resultText = resultTextMapping[previousResult] || previousResult;
+                // Use previousResult directly - it contains HTML from TinyMCE editor
+                const resultText = previousResult;
                 
                 // Update result display
                 document.getElementById('resultRecordedId').textContent = recordedId;
-                document.getElementById('resultText').innerHTML = resultText;
+                document.getElementById('resultText').innerHTML = renderResultHtml(previousResult || resultText);
                 document.getElementById('couponCode').textContent = previousCouponCode;
                 
-                // Show result with animation
-                const result = document.getElementById('result');
-                result.classList.remove('hidden');
-                setTimeout(() => {
-                    result.classList.remove('scale-95', 'opacity-0');
-                    result.classList.add('scale-100', 'opacity-100');
-                }, 50);
+                // Show result with improved animation
+                showResultCard();
                 
                 // Hide the spin status section (we only want the main result card)
                 const spinStatusEl = document.getElementById('spinStatus');
                 if (spinStatusEl) spinStatusEl.classList.add('hidden');
             }
             
-            
+            // Helper: show/hide result overlay + card with smooth animation
+            function showResultCard() {
+                const result = document.getElementById('result');
+                const overlay = document.getElementById('resultOverlay');
+                const wheelContainer = document.querySelector('.wheel-container');
+                if (!result) return;
+
+                // Hide wheel visually so the result card becomes the focus
+                if (wheelContainer) {
+                    wheelContainer.style.display = 'none';
+                }
+
+                // Also hide any pointer elements if present
+                const pointer = document.querySelector('.pointer') || document.querySelector('.wheel-pointer') || document.getElementById('pointer');
+                if (pointer) pointer.style.display = 'none';
+
+                // Unhide any elements that were intentionally hidden via the `gdrhide` class
+                // Mark them so we can restore the hidden state when the result is hidden again
+                const gdrEls = document.querySelectorAll('.gdrhide');
+                gdrEls.forEach(el => {
+                    el.dataset.gdrWasHidden = '1';
+                    el.classList.remove('gdrhide');
+                });
+
+                // Hide elements marked to be hidden when result is shown (e.g., the "your journey" image)
+                const hideOnResultEls = document.querySelectorAll('.hide-on-result');
+                hideOnResultEls.forEach(el => {
+                    // save original inline style so we can restore
+                    if (el.dataset.origStyle === undefined) el.dataset.origStyle = el.getAttribute('style') || '';
+                    el.classList.add('gdrhide');
+                    el.dataset.hideApplied = '1';
+                });
+
+                // Ensure result container sits above by adding a high z-index, but do NOT change positioning.
+                result.style.zIndex = '9999';
+
+                // Show result card (no overlay shown to keep UI simple)
+                if (overlay) overlay.classList.remove('visible');
+
+                result.classList.remove('result-hidden');
+                // force reflow so transition plays reliably
+                void result.offsetWidth;
+                result.classList.add('result-visible', 'result-pop');
+
+                // Remove the pop class after animation so it can be reused
+                setTimeout(() => result.classList.remove('result-pop'), 800);
+            }
+
+            function hideResultCard() {
+                const result = document.getElementById('result');
+                const overlay = document.getElementById('resultOverlay');
+                const wheelContainer = document.querySelector('.wheel-container');
+                if (!result) return;
+
+                // Start exit animation
+                result.classList.remove('result-visible', 'result-pop');
+                result.classList.add('result-hidden');
+
+                // Restore wheel container and pointer after result hides
+                setTimeout(() => {
+                    if (wheelContainer) wheelContainer.style.display = '';
+                    const pointer = document.querySelector('.pointer') || document.querySelector('.wheel-pointer') || document.getElementById('pointer');
+                    if (pointer) pointer.style.display = '';
+                    // Reset z-index override
+                    result.style.zIndex = '';
+
+                    // Restore any elements we previously un-hidden by re-adding the `gdrhide` class
+                    const restored = document.querySelectorAll('[data-gdr-was-hidden="1"]');
+                    restored.forEach(el => {
+                        el.classList.add('gdrhide');
+                        delete el.dataset.gdrWasHidden;
+                    });
+
+                    // Restore elements that were hidden specifically for the result (hide-on-result)
+                    const hiddenForResult = document.querySelectorAll('[data-hide-applied="1"]');
+                    hiddenForResult.forEach(el => {
+                        // remove the hiding class and restore original inline style
+                        el.classList.remove('gdrhide');
+                        if (el.dataset.origStyle !== undefined) {
+                            el.setAttribute('style', el.dataset.origStyle || '');
+                            delete el.dataset.origStyle;
+                        }
+                        delete el.dataset.hideApplied;
+                    });
+
+                    if (overlay) overlay.classList.remove('visible');
+                }, 420); // allow the hide animation to finish
+            }
+
+            // Render result content from structured winner object or HTML string
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            // Remove HTML tags and collapse whitespace
+            function sanitizeText(html) {
+                if (!html) return '';
+                const tmp = document.createElement('DIV');
+                tmp.innerHTML = html;
+                const text = tmp.textContent || tmp.innerText || '';
+                return String(text).replace(/\s+/g, ' ').trim();
+            }
+
+            function renderResultHtml(winner) {
+                // If winner is empty
+                if (!winner) return '';
+
+                // helper: detect Extra X% pattern and return subtitle HTML with computed total (30 + X)
+                function extraPercentSubtitleFromText(text) {
+                    if (!text) return '';
+                    const m = String(text).match(/extra\s*(\d{1,2})\s*%/i);
+                    if (!m) return '';
+                    const val = parseInt(m[1], 10);
+                    if (isNaN(val)) return '';
+                    const total = 30 + val;
+                    // Build safe subtitle where the numeric percentage is bolded
+                    return 'On Bill with purchase of packages total discount upto <strong>' + escapeHtml(total + '%') + '</strong>';
+                }
+
+                // If winner is a raw HTML string from CMS, sanitize and render as plain text
+                if (typeof winner === 'string') {
+                    const clean = sanitizeText(winner);
+
+                    // Try to separate price if present (₹, numbers, or @<num>)
+                    const priceMatch = clean.match(/(₹\s*[\d,]+)|(\@[\s]*[\d,]+)|(\b\d+[kK]?\b)|(\d+\s*ONLY)/i);
+                    let price = '';
+                    let title = clean;
+
+                    if (priceMatch) {
+                        price = priceMatch[0].trim();
+                        title = clean.replace(priceMatch[0], '').trim();
+                    }
+
+                    // Determine subtitle. Special cases handled below
+                    let subtitle = '';
+
+                    // Vdiscover @499 or Free Vdiscover special-case subtitle
+                    if (/vdiscover/i.test(title) && (/@?\s*499\b/.test(clean) || /\bfree\b/i.test(clean))) {
+                        subtitle = '5 step consultation worth RS 900';
+                    }
+
+                    // Extra X% special-case (e.g. "Extra 10% off")
+                    if (!subtitle) {
+                        const extraSub = extraPercentSubtitleFromText(clean) || extraPercentSubtitleFromText(title);
+                        if (extraSub) subtitle = extraSub;
+                    }
+
+                    // Fallback splitting logic when no price and no special subtitle
+                    if (!subtitle && !price) {
+                        const words = title.split(' ');
+                        if (words.length > 1) {
+                            subtitle = words.slice(1).join(' ');
+                            title = words[0];
+                        }
+                    }
+
+                    let out = '';
+                    if (title) out += `<div class="result-title"><strong>${escapeHtml(title)}</strong></div>`;
+                    if (subtitle) {
+                        // subtitle may contain intentional <strong> for computed percent; don't double-escape
+                        const isComputed = /<strong>/.test(subtitle);
+                        out += `<div class="result-sub mt-1">${isComputed ? subtitle : escapeHtml(subtitle)}</div>`;
+                    }
+                    if (price) out += `<div class="result-price mt-3">${escapeHtml(price)}</div>`;
+
+                    return out;
+                }
+
+                // If winner is an object with structured fields
+                let htmlSource = winner.html || winner.text || '';
+                // Sanitize any HTML source to plain text
+                htmlSource = sanitizeText(htmlSource);
+
+                const title = winner.title || winner.heading || '';
+                const subtitle = winner.subtitle || winner.detail || winner.description || '';
+                const price = winner.price || winner.priceText || winner.amount || '';
+
+                // If we have no structured fields but have sanitized htmlSource, return that as plain text
+                if (!title && !subtitle && !price && htmlSource) {
+                    // Special-case: if CMS HTML mentions Vdiscover and 499, or Free Vdiscover, provide the requested subtitle
+                    if (/vdiscover/i.test(htmlSource) && (/@?\s*499\b/.test(htmlSource) || /\bfree\b/i.test(htmlSource))) {
+                        const headlineMatch = htmlSource.match(/vdiscover/i);
+                        const headline = headlineMatch ? headlineMatch[0] + ' @499' : htmlSource;
+                        return `<div class="result-title">${escapeHtml(headline)}</div><div class="result-sub mt-1">${escapeHtml('5 step consultation worth RS 900')}</div>`;
+                    }
+
+                    // Special-case: Extra X% mentioned in CMS HTML
+                    const extraFromHtml = extraPercentSubtitleFromText(htmlSource);
+                    if (extraFromHtml) {
+                        return `<div class="result-title">${escapeHtml(htmlSource)}</div><div class="result-sub mt-1">${extraFromHtml}</div>`;
+                    }
+
+                    return `<div class="result-title">${escapeHtml(htmlSource)}</div>`;
+                }
+
+                // Build markup from structured fields
+                let out = '';
+
+                if (title) {
+                    out += `<div class="result-title"><strong>${escapeHtml(title)}</strong></div>`;
+                }
+
+                // Determine final subtitle: prefer structured subtitle, otherwise apply the Vdiscover/499 or Extra% special cases
+                let finalSubtitle = subtitle;
+                if (!finalSubtitle) {
+                    const combined = `${title} ${price} ${htmlSource}`.trim();
+
+                    if (/vdiscover/i.test(combined) && /@?\s*499\b/.test(combined)) {
+                        finalSubtitle = '5 step consultation worth RS 900';
+                    } else {
+                        const extraFromCombined = extraPercentSubtitleFromText(combined);
+                        if (extraFromCombined) finalSubtitle = extraFromCombined;
+                    }
+                }
+
+                if (finalSubtitle) {
+                    const isComputed = /<strong>/.test(finalSubtitle);
+                    out += `<div class="result-sub mt-1">${isComputed ? finalSubtitle : escapeHtml(finalSubtitle)}</div>`;
+                }
+
+                if (price) {
+                    out += `<div class="result-price mt-3">${escapeHtml(price)}</div>`;
+                }
+
+                return out;
+            }
             
             // Show error message to user
             function showErrorMessage(message) {
